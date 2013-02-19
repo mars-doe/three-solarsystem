@@ -86,6 +86,22 @@
 				solarSystem = new THREE.Object3D();
 				scene.add( solarSystem );
 				
+				var circleRadius = 40;
+				var circleShape = new THREE.Shape();
+				circleShape.moveTo( 0, 0 );
+				circleShape.quadraticCurveTo( circleRadius, circleRadius, circleRadius, 0 );
+				circleShape.quadraticCurveTo( circleRadius, -circleRadius, 0, -circleRadius );
+				circleShape.quadraticCurveTo( -circleRadius, -circleRadius, -circleRadius, 0 );
+				circleShape.quadraticCurveTo( -circleRadius, circleRadius, 0, circleRadius );
+				
+				var spacedPoints = shape.createSpacedPointsGeometry( 100 );
+				var line = new THREE.Line( spacedPoints, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.2 } ) );
+				// line.position.set( 0, 0, 0 );
+				// line.rotation.set( rx, ry, rz );
+				// line.scale.set( 1, 1, 1 );
+				scene.add( line );
+					
+					
 				// Sun & Planets
 				
 				var sun = new Planet( 2439.7 * planetScale, segmentsWidth, segmentsHeight, sunTexture);
