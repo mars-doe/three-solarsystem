@@ -46,7 +46,7 @@
 			
 			var solarSystem, sun;
 			var planets = new Array(8);
-			var planetSize = [2439.7, 6051.8, 6371.00, 3389.5, 69911, 58232, 25362, 24622];
+			var planetSize = [ 2439.7, 6051.8, 6371.00, 3389.5, 69911, 58232, 25362, 24622 ];
 			var planetTextures = [
 				'./models/solarsystem/mercurymap.jpg',
 				'./models/solarsystem/venusmap.jpg',
@@ -58,24 +58,32 @@
 				'./models/solarsystem/neptunemap.jpg',
 			];
 			
+			var semiMajor = [ 57909227, 108209475, 149598262, 227943824, 778340821, 1426666422, 2870658186, 4498396441 ];
+			var eccentricity = [ 0.20563593, 0.00677672, 0.01671123, 0.0933941,	0.04838624,	0.05386179,	0.04725744,	0.00859048 ];
+			var aphelion = [ 69817445, 108942780, 152098233, 249232432, 816001807, 1503509229, 3006318143, 4537039826 ];
+			
 			var sunTexture = './models/solarsystem/sunmap.jpg';
 			
-			var planetScale = .001;
-			var ssScale = .00001;
+			var planetScale = .001 * .5;
+			var ssScale = .000001 * .5;
 			
 			var segmentsWidth = 20;
 			var segmentsHeight = 20;
+			var axisRez = 50;
 			
 			var textureLoader;
+			var timer = 0;
 
 			init();
 			animate();
+
 
 			function init() {
 
 				container = document.getElementById( 'container' );
 
-				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 100000 );
+				camera.position.y = 500;
 				camera.position.z = 1500;
 				
 				controls = new THREE.OrbitControls( camera );
@@ -86,21 +94,7 @@
 				solarSystem = new THREE.Object3D();
 				scene.add( solarSystem );
 				
-				var circleRadius = 40;
-				var circleShape = new THREE.Shape();
-				circleShape.moveTo( 0, 0 );
-				circleShape.quadraticCurveTo( circleRadius, circleRadius, circleRadius, 0 );
-				circleShape.quadraticCurveTo( circleRadius, -circleRadius, 0, -circleRadius );
-				circleShape.quadraticCurveTo( -circleRadius, -circleRadius, -circleRadius, 0 );
-				circleShape.quadraticCurveTo( -circleRadius, circleRadius, 0, circleRadius );
-				
-				var spacedPoints = shape.createSpacedPointsGeometry( 100 );
-				var line = new THREE.Line( spacedPoints, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: 0.2 } ) );
-				// line.position.set( 0, 0, 0 );
-				// line.rotation.set( rx, ry, rz );
-				// line.scale.set( 1, 1, 1 );
-				scene.add( line );
-					
+
 					
 				// Sun & Planets
 				
@@ -110,9 +104,48 @@
 				for ( var i = 0; i < planets.length; i ++ ) {
 				
 					planets[i] = new Planet( planetSize[i] * planetScale, segmentsWidth, segmentsHeight, planetTextures[i]);
-					planets[i].mesh.position.x = (i + 1) * 1000;
+					planets[i].mesh.position.x = semiMajor[i] * ssScale;
 
 				}	
+				
+				
+				
+				// Axis
+				
+				var axisMat = new THREE.LineBasicMaterial( { color: 0xff00f0, } );
+				var splineMat = new THREE.LineBasicMaterial( { color: 0xff00f0, } );
+				
+				var spline = new Array();
+				var splineGeo, splinePoints, line;
+				
+				for ( var i = 0; i < planets.length; i ++ ) {
+					var semiMinor;
+					
+					semiMinor = semiMajor[i] * Math.sqrt(1 - eccentricity[i] * eccentricity[i]); 
+					
+					var axisPoint = [];
+					for( var k = 0; k < axisRez; k++ ) {
+						var x = semiMajor[i] * Math.cos(k / axisRez*Math.PI*2) * ssScale + (aphelion[i] - semiMajor[i]) * ssScale;
+						var z = semiMinor * Math.sin(k / axisRez*Math.PI*2) * ssScale;
+						axisPoint[k] = new THREE.Vector3( x, 0, z );
+					}
+					
+					axisPoint.push( axisPoint[0] );
+					spline.push( new THREE.SplineCurve3(
+						axisPoint
+					));
+					
+					splineGeo = new THREE.Geometry();
+					splinePoints = spline[i].getPoints(axisRez);
+					
+					for(var j = 0; j < splinePoints.length; j++){
+						splineGeo.vertices.push(splinePoints[j]);  
+					}
+					
+					line = new THREE.Line( splineGeo, splineMat );
+					scene.add(line);		
+				}	
+				
 				
 				// Render
 				renderer = new THREE.CanvasRenderer();
@@ -165,6 +198,8 @@
 				requestAnimationFrame( animate );
 				controls.update();
 				
+				//solarSystem.rotation.y -= 0.01;
+				//planets[0].position.mesh.position.x = semiMajor[0] * Math.cos(k / axisRez*Math.PI*2) * ssScale + (aphelion[i] - semiMajor[i]) * ssScale;
 				render();
 			}
 
@@ -173,9 +208,6 @@
 // 				camera.position.x += ( mouseX - camera.position.x ) * 0.05;
 // 				camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
 				camera.lookAt( scene.position );
-
-// 				solarSystem.rotation.y -= 0.005;
-
 				renderer.render( scene, camera );
 
 			}
