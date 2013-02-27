@@ -173,26 +173,24 @@
 					CONTROLS
 				********************************/
 
-				// controls = new THREE.OrbitControls( camera );
-				// controls.addEventListener( 'change', render );
+				controls = new THREE.OrbitControls( camera );
+				controls.addEventListener( 'change', render );
 
-				controls = new THREE.TrackballControls( camera );
+				// controls = new THREE.TrackballControls( camera );
 
-				controls.target = camTarget;
+				// controls.target = camTarget;
 
-				controls.minDistance = 25;
-				controls.maxDistance = 15000;
+				// controls.minDistance = 25;
+				// controls.maxDistance = 15000;
 
-				controls.rotateSpeed = 0.25;
-				controls.zoomSpeed = 0.25;
+				// controls.rotateSpeed = 0.25;
+				// controls.zoomSpeed = 0.25;
 
-				controls.noRotate = false;
-				controls.noZoom = false;
-				controls.noPan = false;
+				// controls.noRotate = false;
+				// controls.noZoom = false;
+				// controls.noPan = false;
 
-				controls.dynamicDampingFactor = 1;
-
-				controls.keys = [ 65, 83, 68 ];
+				// controls.dynamicDampingFactor = .5;
 
 				//controls.addEventListener( 'change', render );
 
@@ -413,7 +411,7 @@
 					camera.rotation.z = camCurrentRotation.z;
 
 					camTarget = camCurrentTarget;
-					camera.lookAt( camTarget );
+					//camera.lookAt( camTarget );
 				}
 
 				var camCurrentPosition	= {
@@ -478,7 +476,7 @@
 
 				renderer.setSize( $(window).width(), $(window).height()-50 );
 
-				controls.handleResize();
+				//controls.handleResize();
 
 				//composer.reset();
 
@@ -505,7 +503,8 @@
 			}
 
 			function render() {
-
+				
+				camera.lookAt( camTarget );
 				scene.updateMatrixWorld();
 				scene.traverse( function ( object ) {
 						if ( object instanceof THREE.LOD ) {
