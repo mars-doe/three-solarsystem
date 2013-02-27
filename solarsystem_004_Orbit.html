@@ -16,6 +16,7 @@
 
 				background-color: #000000;
 				margin: 0px;
+				padding: 0px;
 				overflow: hidden;
 			}
 
@@ -26,7 +27,14 @@
 			}
 
 			#speedSlider {
+				width: 50%;
+			}
 
+			.center	{
+				margin-left:auto;
+				margin-right:auto;
+				width:70%;
+				background-color:#b0e0e6;
 			}
 
 			a {
@@ -47,7 +55,8 @@
 		<button id="cam3">Camera Position 3</button>
 		<button id="cam4">Earth</button>
 		<button id="cam5">Mars</button>
-		<div id="speedSlider"></div>
+		<button id="traject">Trajectory</button>
+		<div id="speedSlider" class="center"></div>
 		
 		
 		<script src="js/libs/jquery-1.9.1.min.js"></script>
@@ -76,6 +85,7 @@
 
 		<script src="./js/planet.js"></script>
 		<script src="./js/stars.js"></script>
+		<script src="./js/trajectory.js"></script>
 
 		<script>
 
@@ -107,7 +117,7 @@
 			var stats, scene, camera, pointLight, camTarget, camNextPosition, camNextRotation, camNextTarget, 
 				ambientLight, renderer, composer, controls, tween, tweenBack, uniforms;
 
-			var solarSystem, sun;
+			var solarSystem, sun, trajectory;
 			var planets = new Array(8);
 
 			var planetSize = [ 2439.7, 6051.8, 6371.00, 3389.5, 69911, 58232, 25362, 24622 ];
@@ -171,7 +181,7 @@
 				solarSystem = new THREE.Object3D();
 				scene.add( solarSystem );
 
-
+				trajectory = new Trajectory ( 2 );
 				/********************************
 					CONTROLS
 				********************************/
@@ -301,9 +311,6 @@
 
 							TWEEN.removeAll();
 							camTweener( camNextPosition, camNextTarget, 5000 );
-							//camTweener( camNextPosition, camNextRotation, camNextTarget, 5000 );
-
-
 					});	
 
 					$( "#cam3" )
@@ -330,8 +337,6 @@
 
 							TWEEN.removeAll();
 							camTweener( camNextPosition, camNextTarget, 1500 );
-							//camTweener( camNextPosition, camNextRotation, camNextTarget, 1500 );
-
 					});
 
 					$( "#cam4" )
@@ -352,7 +357,6 @@
 
 							TWEEN.removeAll();
 							camTweener( camNextPosition, planets[2].mesh.position, 1500 );
-							//camTweener( camNextPosition, camNextRotation, planets[2].mesh.position, 1500 );
 					});
 
 					$( "#cam5" )
@@ -373,7 +377,27 @@
 
 							TWEEN.removeAll();
 							camTweener( camNextPosition, planets[3].mesh.position, 1500 );
-							//camTweener( camNextPosition, camNextRotation, planets[3].mesh.position, 1500 );
+					});
+
+					$( "#traject" )
+						.button()
+						.click(function( event ) {
+
+							camNextPosition	= {
+								x: 50, 
+								y: 50, 
+								z: 300 
+							};
+
+							camNextRotation = {
+								x: 0,
+								y: 0,
+								z: 0
+							};
+
+							console.log( planets[2].mesh.position );
+							trajectory.drawTrajectory( planets[2].mesh.position, planets[3].mesh.position, scene );
+
 					});
 
 					$( "#speedSlider" ).slider( {

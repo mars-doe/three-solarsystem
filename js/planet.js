@@ -57,7 +57,7 @@ var Planet = function( radius, segW, segH, texture ){
 				scene.add( planetLod );
             },
 
-    	removeFrom: function ( scene ) {
+    	removePlanet: function ( scene ) {
 				scene.remove( planetLod );
             },
 
