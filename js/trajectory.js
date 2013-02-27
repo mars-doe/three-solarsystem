@@ -14,26 +14,17 @@ var Trajectory = function( start, end, resolution){
 	;
 
 
-
-	// for( var i = 0; i < axisRez; i++ ) {
-	// 	x = semiMaj * Math.cos( i / axisRez * Math.PI * 2 ) * ssScale + ( ( aph - semiMaj ) * ssScale );
-	// 	z = semiMin * Math.sin( i / axisRez * Math.PI * 2 ) * ssScale;
-	// 	axisPoints[i] = new THREE.Vector3( x, 0, z );
-	// }
-
-
-
 	return {
 		
 		// line: line,
 
    		drawTrajectory: function ( start, end ) {
    			scene.remove(line);
-   			
+
 			axisRez = resolution;
 			axisPoints = [ start, end ];
 
-			splineMat = new THREE.LineBasicMaterial( { color: 0xff00f0, opacity: 0.25, linewidth: 1 } );
+			splineMat = new THREE.LineBasicMaterial( { color: 0x2BBFBD, opacity: 0.25, linewidth: 1 } );
 
 			spline =  new THREE.SplineCurve3( axisPoints );
 			splinePoints = spline.getPoints( axisRez );
@@ -45,12 +36,9 @@ var Trajectory = function( start, end, resolution){
 
 			line = new THREE.Line( splineGeo, splineMat );
 			line.updateMatrix();
+
 			scene.add( line );
         },
-
-   // 		drawTrajectory: function ( scene ) {
-			// scene.add( line );
-   //      },
 
         removeTrajectory: function( scene ){
         	scene.remove( line );

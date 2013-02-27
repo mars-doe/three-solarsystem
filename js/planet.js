@@ -77,7 +77,7 @@ var Planet = function( radius, segW, segH, texture ){
 		drawOrbit: function( axisRez ){
 
 			lineLod = new THREE.LOD();
-			splineMat = new THREE.LineBasicMaterial( { color: 0xff00f0, opacity: 0.25, linewidth: 1 } );
+			splineMat = new THREE.LineBasicMaterial( { color: 0xF22E2E, opacity: 0.25, linewidth: 1 } );
  
 			for (var i = 0; i < lodLevel; i++) {
 
@@ -90,7 +90,7 @@ var Planet = function( radius, segW, segH, texture ){
 					z = semiMin * Math.sin( i / axisRez * Math.PI * 2 ) * ssScale;
 					axisPoints[i] = new THREE.Vector3( x, 0, z );
 				}
-				
+					
 				spline =  new THREE.ClosedSplineCurve3( axisPoints );
 				splineGeo = new THREE.Geometry();
 				splinePoints = spline.getPoints( axisRez );
