@@ -1,3 +1,5 @@
+// var planetTexture, textureLoader;
+
 var Planet = function( radius, segW, segH, texture ){
 
 	var 
@@ -16,9 +18,9 @@ var Planet = function( radius, segW, segH, texture ){
 		splineGeo,
 		splineMat,
 		splinePoints,
-		axisPoints
-	;
+		axisPoints;
 
+	// loadTexture( texture );
 	planetTexture = new THREE.Texture();
 	textureLoader = new THREE.ImageLoader();
 
@@ -103,9 +105,25 @@ var Planet = function( radius, segW, segH, texture ){
 			var orbitTime = time / days;
 			lod.position.x = semiMaj * Math.cos( axisRez * Math.PI * 2 + orbitTime) * ssScale + ( ( aph - semiMaj ) * ssScale );
 			lod.position.z = semiMin * Math.sin( axisRez * Math.PI * 2 + orbitTime) * ssScale;
-			lod.rotation.y = time;
-			// console.log(time);
+			//lod.rotation.y = time;
+
 		}
 	}
 };
+
+// function loadTexture( texture ){
+
+// 	planetTexture = new THREE.Texture();
+// 	textureLoader = new THREE.ImageLoader();
+
+// 	textureLoader.addEventListener( 'load', function ( event ) {
+
+// 		planetTexture.image = event.content;
+// 		planetTexture.needsUpdate = true;
+
+// 		});
+
+// 	textureLoader.load( texture );
+
+// }
 	

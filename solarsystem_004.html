@@ -38,6 +38,11 @@
 
 		<div id="info">DUDE!</div>
 		<div id="container"></div>
+		<button id="cam1">Camera Position 1</button>
+		<button id="cam2">Camera Position 2</button>
+		<button id="cam3">Camera Position 3</button>
+		<button id="cam4">Earth</button>
+		<button id="cam5">Mars</button>
 		
 		
 		<script src="js/libs/jquery-1.9.1.min.js"></script>
@@ -140,20 +145,20 @@
 						};
 			})();
 
-
-			/********************************
-				JQUERY
-			********************************/
-			$(function() {
-				$( "#container" ).slider();
-			});
-
-
 			/********************************
 				THREE VARIABLES
 			********************************/
-			var container, stats, scene, camera, pointLight, ambientLight, renderer, composer, controls, tween, tweenBack, uniforms;
-			
+			var WIDTH = $(window).width(),
+			    HEIGHT = $(window).height() - 50;
+
+			var VIEW_ANGLE = 45,
+				ASPECT = WIDTH / HEIGHT,
+				NEAR = 1,
+				FAR = 100000;
+
+			var $container = $('#container');
+			var stats, scene, camera, pointLight, camTarget, camNextPosition, camNextTarget, ambientLight, renderer, composer, controls, tween, tweenBack, uniforms;
+
 			var solarSystem, sun;
 			var planets = new Array(8);
 
@@ -183,33 +188,32 @@
 			var planetSegW = 15, planetSegH = 15;
 
 			var timer = 1, timerMultiplier = .5;
-			var day = 360, dayCount = 0, degreeRot;
 
 			init();
 
 			function init() {
 
-				container = document.getElementById( 'container' );
-				//container = document.createElement( 'div' );
-				//document.body.appendChild( container );
-
 				/********************************
 					SCENE SETUP
 				********************************/
+				container = $('#container');
 				scene = new THREE.Scene();
 
-				camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 100000 );
+				camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
 				camera.position.y = 150;
 				camera.position.z = 500;
+
+				camTarget = new THREE.Vector3();
+				camTarget = scene.position;
 				
 				controls = new THREE.OrbitControls( camera );
 				controls.addEventListener( 'change', render );
 
-				var ambientLight = new THREE.AmbientLight();
+				ambientLight = new THREE.AmbientLight();
 				ambientLight.color.setRGB( .15, .15, .15 );
 				scene.add(ambientLight);
 
-				var pointLight = new THREE.PointLight(0xFFFFFF);
+				pointLight = new THREE.PointLight(0xFFFFFF);
 
 				pointLight.position.x = 0;
 				pointLight.position.y = 0;
@@ -297,10 +301,11 @@
 					RENDERER
 				********************************/
 				renderer = Detector.webgl? new THREE.WebGLRenderer( { antialias: true } ): new THREE.CanvasRenderer();;
-				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setSize( WIDTH, HEIGHT );
 
-				container.appendChild( renderer.domElement );
+				$container.append( renderer.domElement );
 				renderer.autoClear = false;
+
 
 				/********************************
 					POST-PROCESSING
@@ -323,82 +328,183 @@
 				stats = new Stats();
 				stats.domElement.style.position = 'absolute';
 				stats.domElement.style.top = '0px';
-				container.appendChild( stats.domElement );
+				$container.append( stats.domElement );
 
-				//
+				/********************************
+					JQUERY
+				********************************/
+				$(function() {
+					$( "#slider" ).slider( { 
+						animate: true,
+						range: "min",
+						value: 50,
+						min: 10,
+						max: 100,
+						step: 1,
+
+					});
+
+					$( "#cam1" )
+						.button()
+						.click(function( event ) {
+
+							camNextPosition	= {
+								x: -1000, 
+								y: 400, 
+								z: -250 
+							};
+
+							camNextTarget = {
+								x: 0,
+								y: 0,
+								z: 0
+							};
+
+							setupTween( camNextPosition, camNextTarget, 1500 );
+
+					});
+
+					$( "#cam2" )
+						.button()
+						.click(function( event ) {
+
+							camNextPosition	= {
+								x: 0, 
+								y: 12000, 
+								z: 500
+							};
+
+							camNextTarget = {
+								x: 0,
+								y: 0,
+								z: 0
+							};
+
+							setupTween( camNextPosition, camNextTarget, 5000 );
+					});	
+
+					$( "#cam3" )
+						.button()
+						.click(function( event ) {
+
+							camNextPosition	= {
+								x: 0, 
+								y: 1000, 
+								z: 5000 
+							};
+
+							camNextTarget = {
+								x: 0,
+								y: 0,
+								z: 0
+							};
+							setupTween( camNextPosition, camNextTarget, 1500 );
+
+					});
+
+					$( "#cam4" )
+						.button()
+						.click(function( event ) {
+
+							camNextPosition	= {
+								x: 0, 
+								y: 50, 
+								z: 250 
+							};
+
+							setupTween( camNextPosition, planets[2].mesh.position, 1500 );
+					});
+					$( "#cam5" )
+						.button()
+						.click(function( event ) {
+
+							camNextPosition	= {
+								x: 50, 
+								y: 50, 
+								z: 300 
+							};
+
+							setupTween( camNextPosition, planets[3].mesh.position, 1500 );
+					});
+				});
+
 				window.addEventListener( 'resize', onWindowResize, false );
 
 				animate();
 
 			}
-			function setupTween() {
+
+			function setupTween( newCamPosition, newTarget, time ) {
 
 				var update	= function(){
-					camera.position.x = current.x;
-					camera.position.y = current.y;
-					camera.position.z = current.z;
-				}
-				var current	= { x: camera.position.x, y: camera.position.y, z: camera.position.z };
+					camera.position.x = camCurrentPosition.x;
+					camera.position.y = camCurrentPosition.y;
+					camera.position.z = camCurrentPosition.z;
 
-				tweenTop = new TWEEN.Tween( current )
-					.to({ y: 15000, z: 0 }, 3000)
-					.delay(2000)
-					.easing(TWEEN.Easing.Exponential.InOut)
+					camTarget = camCurrentTarget;
+				}
+
+				var camCurrentPosition	= {
+					x: camera.position.x, 
+					y: camera.position.y, 
+					z: camera.position.z 
+				};
+				
+				camCurrentTarget = camTarget;
+
+				tweenPosition = new TWEEN.Tween( camCurrentPosition )
+					.to( newCamPosition , time )
+					.delay(0)
+					.easing(TWEEN.Easing.Sinusoidal.InOut)
 					.onUpdate( update );
 
-				tweenWide = new TWEEN.Tween( current )
-					.to({ y: 500, z: 1000 }, 2000)
-					.delay(2000)
-					.easing(TWEEN.Easing.Quadratic.InOut)
-					.onUpdate(update);
+				tweenPOI = new TWEEN.Tween( camCurrentTarget )
+					.to( newTarget, time)
+					.delay(0)
+					.easing(TWEEN.Easing.Sinusoidal.InOut)
+					.onUpdate( update );
 
-				tweenSun = new TWEEN.Tween( current )
-					.to({ y: 100, z: 300 }, 2000)
-					.delay(2000)
-					.easing(TWEEN.Easing.Quadratic.InOut)
-					.onUpdate(update);
-
-				tweenTop.chain( tweenWide );
-				tweenWide.chain( tweenSun );
-				tweenSun.chain( tweenTop );
-
-				tweenTop.start();
+				tweenPosition.start();
+				tweenPOI.start();
 			}
 
 			function onWindowResize() {
 			
-				windowHalfX = window.innerWidth / 2;
-				windowHalfY = window.innerHeight / 2;
+				windowHalfX = $(window).width() / 2;
+				windowHalfY = $(window).height() / 2;
 
-				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.aspect = $(window).width() / $(window).height();
 				camera.updateProjectionMatrix();
 
-				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setSize( $(window).width(), $(window).height()-50 );
 
 				//composer.reset();
 
 			}
 			
 			function animate() {
-				requestAnimationFrame( animate );
-				controls.update();
 
-				render();
+				requestAnimationFrame( animate );
+
+				controls.update();
 				stats.update();
 				TWEEN.update();
+
+				render();
+
 
 				for ( var i = 0; i < planets.length; i ++ ) {
 					planets[i].startOrbit( timer * timerMultiplier, orbitTime[i] );
 				}
 
 				timer++;
-				degreeRot = Math.floor( planets[2].mesh.rotation.y * ( 180 /  Math.PI ) );
+				// degreeRot = Math.floor( planets[2].mesh.rotation.y * ( 180 /  Math.PI ) );
 				
 			}
 
 			function render() {
 
-				camera.lookAt( scene.position );
+				camera.lookAt( camTarget );
 
 				scene.updateMatrixWorld();
 				scene.traverse( function ( object ) {
