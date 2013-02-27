@@ -25,6 +25,10 @@
 				padding: 5px;
 			}
 
+			#speedSlider {
+
+			}
+
 			a {
 
 				color: #0080ff;
@@ -43,6 +47,7 @@
 		<button id="cam3">Camera Position 3</button>
 		<button id="cam4">Earth</button>
 		<button id="cam5">Mars</button>
+		<div id="speedSlider"></div>
 		
 		
 		<script src="js/libs/jquery-1.9.1.min.js"></script>
@@ -51,18 +56,16 @@
 		<script src="./js/three.min.js"></script>
 		<script src="./js/Detector.js"></script>
 
-		<script src="./js/controls/OrbitControls.js"></script>		
-		<script src="./js/controls/TrackballControls.js"></script>
-
 		<script src="./js/libs/tween.min.js"></script>
 		<script src="./js/libs/stats.min.js"></script>
+
+		<script src="./js/controls/OrbitControls.js"></script>	
 
 		<script src="./js/geometries/LatheGeometry.js"></script>
 
 		<script src="./js/shaders/ConvolutionShader.js"></script>
 		<script src="./js/shaders/CopyShader.js"></script>
 		<script src="./js/shaders/FilmShader.js"></script>
-
 
 		<script src="./js/postprocessing/EffectComposer.js"></script>
 		<script src="./js/postprocessing/ShaderPass.js"></script>
@@ -93,7 +96,7 @@
 				THREE VARIABLES
 			********************************/
 			var WIDTH = $(window).width(),
-			    HEIGHT = $(window).height() - 50;
+			    HEIGHT = $(window).height() - 100;
 
 			var VIEW_ANGLE = 45,
 				ASPECT = WIDTH / HEIGHT,
@@ -132,7 +135,7 @@
 			
 			var planetSegW = 15, planetSegH = 15;
 
-			var timer = 1, timerMultiplier = .5;
+			var timer = 1, timerMultiplier = 0;
 
 			init();
 
@@ -175,25 +178,6 @@
 
 				controls = new THREE.OrbitControls( camera );
 				controls.addEventListener( 'change', render );
-
-				// controls = new THREE.TrackballControls( camera );
-
-				// controls.target = camTarget;
-
-				// controls.minDistance = 25;
-				// controls.maxDistance = 15000;
-
-				// controls.rotateSpeed = 0.25;
-				// controls.zoomSpeed = 0.25;
-
-				// controls.noRotate = false;
-				// controls.noZoom = false;
-				// controls.noPan = false;
-
-				// controls.dynamicDampingFactor = .5;
-
-				//controls.addEventListener( 'change', render );
-
 
 				/********************************
 					SUN & PLANETS
@@ -288,8 +272,8 @@
 							};
 
 							TWEEN.removeAll();
-							tweener( camNextPosition, camNextTarget, 1500 );
-							//tweener( camNextPosition, camNextRotation, camNextTarget, 1500 );
+							camTweener( camNextPosition, camNextTarget, 1500 );
+							//camTweener( camNextPosition, camNextRotation, camNextTarget, 1500 );
 
 					});
 
@@ -316,8 +300,8 @@
 							};
 
 							TWEEN.removeAll();
-							tweener( camNextPosition, camNextTarget, 5000 );
-							//tweener( camNextPosition, camNextRotation, camNextTarget, 5000 );
+							camTweener( camNextPosition, camNextTarget, 5000 );
+							//camTweener( camNextPosition, camNextRotation, camNextTarget, 5000 );
 
 
 					});	
@@ -345,8 +329,8 @@
 							};
 
 							TWEEN.removeAll();
-							tweener( camNextPosition, camNextTarget, 1500 );
-							//tweener( camNextPosition, camNextRotation, camNextTarget, 1500 );
+							camTweener( camNextPosition, camNextTarget, 1500 );
+							//camTweener( camNextPosition, camNextRotation, camNextTarget, 1500 );
 
 					});
 
@@ -367,9 +351,10 @@
 							};
 
 							TWEEN.removeAll();
-							tweener( camNextPosition, planets[2].mesh.position, 1500 );
-							//tweener( camNextPosition, camNextRotation, planets[2].mesh.position, 1500 );
+							camTweener( camNextPosition, planets[2].mesh.position, 1500 );
+							//camTweener( camNextPosition, camNextRotation, planets[2].mesh.position, 1500 );
 					});
+
 					$( "#cam5" )
 						.button()
 						.click(function( event ) {
@@ -387,8 +372,23 @@
 							};
 
 							TWEEN.removeAll();
-							tweener( camNextPosition, planets[3].mesh.position, 1500 );
-							//tweener( camNextPosition, camNextRotation, planets[3].mesh.position, 1500 );
+							camTweener( camNextPosition, planets[3].mesh.position, 1500 );
+							//camTweener( camNextPosition, camNextRotation, planets[3].mesh.position, 1500 );
+					});
+
+					$( "#speedSlider" ).slider( {
+						animate: true,
+						range: "min",
+						value: 10,
+						min: 0,
+						max: 50,
+						step: 1,
+						create: function() {
+							timerMultiplier = $( "#speedSlider" ).slider( "option", "value" );
+						},
+						change: function() {
+							timerMultiplier = $( "#speedSlider" ).slider( "option", "value" );
+						}
 					});
 				});
 
@@ -398,7 +398,7 @@
 
 			}
 
-			function tweener( newCamPosition, newTarget, time ) {
+			function camTweener( newCamPosition, newTarget, time ) {
 
 				var update	= function() {
 
@@ -474,10 +474,9 @@
 				camera.aspect = $(window).width() / $(window).height();
 				camera.updateProjectionMatrix();
 
-				renderer.setSize( $(window).width(), $(window).height()-50 );
+				renderer.setSize( $(window).width(), $(window).height()-100 );
 
 				//controls.handleResize();
-
 				//composer.reset();
 
 			}
@@ -492,12 +491,12 @@
 
 				render();
 
-
 				for ( var i = 0; i < planets.length; i ++ ) {
-					planets[i].startOrbit( timer * timerMultiplier, orbitTime[i] );
+					planets[i].startOrbit( -timer, orbitTime[i] );
 				}
-
 				timer++;
+				timer = timer + timerMultiplier;
+
 				// degreeRot = Math.floor( planets[2].mesh.rotation.y * ( 180 /  Math.PI ) );
 				
 			}
