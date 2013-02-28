@@ -103,6 +103,35 @@
 					};
 			})();
 
+			var vertexTest, fragmentTest;
+
+			$( document ).ready( function() {
+				$.ajax({
+					url: "./shaders/vertexTest.vs",
+					dataType: 'text',
+					success: function ( txt ) {
+						vertexTest = txt;
+					},
+					error: function( txt ) {
+						//AJAX request not completed
+						alert( "vertex not loaded" );
+					}
+				});
+
+				$.ajax({
+					url: "./shaders/fragmentTest.fs",
+					dataType: 'text',
+					success: function ( txt ) {
+						fragmentTest = txt;
+					},
+					error: function( txt ) {
+						alert( "fragement not loaded" );
+					}
+				});
+				console.log( vertexTest );
+				init();
+			});
+
 			/********************************
 				THREE VARIABLES
 			********************************/
@@ -116,7 +145,7 @@
 
 			var $container = $('#container');
 			var stats, scene, camera, pointLight, camTarget, camNextPosition, camNextRotation, camNextTarget, 
-				ambientLight, renderer, composer, controls, tween, tweenBack, uniforms;
+				ambientLight, renderer, composer, controls, tween, tweenBack, uniforms, shaderTest;
 
 			var solarSystem, sun, trajectory;
 			var planets = new Array(8);
@@ -148,7 +177,7 @@
 
 			var timer = 1, timerMultiplier = 0;
 
-			init();
+			//init();
 
 			function init() {
 
@@ -189,6 +218,18 @@
 
 				controls = new THREE.OrbitControls( camera );
 				controls.addEventListener( 'change', render );
+
+				/********************************
+					LOAD SHADERS
+				********************************/
+				shaderTest = new THREE.ShaderMaterial( {
+				    vertexShader:   vertexTest,
+				    fragmentShader: fragmentTest
+				});
+
+				sphere = new THREE.SphereGeometry( 500, 15, 15 );
+				mesh = new THREE.Geometry( sphere, shaderTest);
+				scene.add( mesh );
 
 				/********************************
 					SUN & PLANETS
