@@ -92,15 +92,15 @@
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-			window.requestAnimationsFrame = (function(){
-  				return  window.requestAnimationFrame       || 
-						window.webkitRequestAnimationFrame || 
-						window.mozRequestAnimationFrame    || 
-						window.oRequestAnimationFrame      || 
-						window.msRequestAnimationFrame     || 
-						function(/* function */ callback, /* DOMElement */ element){
-							window.setTimeout(callback, 1000 / 60);
-						};
+				window.requestAnimationsFrame = ( function() {
+					return  window.requestAnimationFrame       || 
+							window.webkitRequestAnimationFrame || 
+							window.mozRequestAnimationFrame    || 
+							window.oRequestAnimationFrame      || 
+							window.msRequestAnimationFrame     || 
+					function(/* function */ callback, /* DOMElement */ element){
+						window.setTimeout(callback, 1000 / 60);
+					};
 			})();
 
 			/********************************
@@ -142,7 +142,7 @@
 			
 			var axisRez = 50;
 
-			var sunScale = .00001, planetScale = .0005, ssScale = .000001;
+			var sunScale = .00001, planetScale = .0001, ssScale = .000001;
 			
 			var planetSegW = 15, planetSegH = 15;
 
@@ -212,6 +212,12 @@
 				starField = new Stars( 100000, 100 );
 				scene.add( starField );
 				
+				/********************************
+					LENS FLARE
+				********************************/
+
+				var flare = addLensFlare( 0, 0, 0, 5, sunTexture );
+				scene.add( flare );
 
 				/********************************
 					RENDERER
@@ -247,8 +253,9 @@
 				$container.append( stats.domElement );
 
 				/********************************
-					JQUERY CAMER POSITIONS
+					JQUERY CAMERA POSITIONS
 				********************************/
+
 				$(function() {
 					$( "#slider" ).slider( { 
 						animate: true,
@@ -276,12 +283,6 @@
 								z: 0
 							};
 
-							camNextRotation = {
-								x: 0,
-								y: 0,
-								z: 0
-							};
-
 							TWEEN.removeAll();
 							camTweener( camNextPosition, camNextTarget, 1500 );
 							//camTweener( camNextPosition, camNextRotation, camNextTarget, 1500 );
@@ -299,12 +300,6 @@
 							};
 
 							camNextTarget = {
-								x: 0,
-								y: 0,
-								z: 0
-							};
-
-							camNextRotation = {
 								x: 0,
 								y: 0,
 								z: 0
@@ -330,12 +325,6 @@
 								z: 0
 							};
 
-							camNextRotation = {
-								x: 0,
-								y: 0,
-								z: 0
-							};
-
 							TWEEN.removeAll();
 							camTweener( camNextPosition, camNextTarget, 1500 );
 					});
@@ -350,12 +339,6 @@
 								z: 250 
 							};
 
-							camNextRotation = {
-								x: 0,
-								y: 0,
-								z: 0
-							};
-
 							TWEEN.removeAll();
 							camTweener( camNextPosition, planets[2].mesh.position, 1500 );
 					});
@@ -368,12 +351,6 @@
 								x: 50, 
 								y: 50, 
 								z: 300 
-							};
-
-							camNextRotation = {
-								x: 0,
-								y: 0,
-								z: 0
 							};
 
 							TWEEN.removeAll();
@@ -416,6 +393,55 @@
 
 				animate();
 
+			}
+
+				function addLensFlare( x, y, z, size, overrideImage ){
+					var flareColor = new THREE.Color( 0xffffff );
+
+					var lensFlare = new THREE.LensFlare( overrideImage, 700, 0.0, THREE.AdditiveBlending, flareColor );
+
+					var textureFlare0 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare0.png" );
+					var textureFlare2 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare2.png" );
+					var textureFlare3 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare3.png" );
+
+					lensFlare.add( textureFlare0, 200, 0.0, THREE.AdditiveBlending );
+					lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+					lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+					lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+
+					lensFlare.add( textureFlare3, 60, 0.6, THREE.AdditiveBlending );
+					lensFlare.add( textureFlare3, 70, 0.7, THREE.AdditiveBlending );
+					lensFlare.add( textureFlare3, 120, 0.9, THREE.AdditiveBlending );
+					lensFlare.add( textureFlare3, 70, 1.0, THREE.AdditiveBlending );
+
+					lensFlare.customUpdateCallback = lensFlareUpdateCallback;
+
+					lensFlare.position = new THREE.Vector3(x,y,z);
+					lensFlare.size = size ? size : 16000 ;
+					return lensFlare;
+				}
+
+				function lensFlareUpdateCallback( object ) {
+
+					var f, fl = object.lensFlares.length;
+					var flare;
+					var vecX = -object.positionScreen.x * 2;
+					var vecY = -object.positionScreen.y * 2;
+
+
+					for( f = 0; f < fl; f++ ) {
+
+						   flare = object.lensFlares[ f ];
+
+						   flare.x = object.positionScreen.x + vecX * flare.distance;
+						   flare.y = object.positionScreen.y + vecY * flare.distance;
+
+						   flare.rotation = 0;
+
+					}
+
+					object.lensFlares[ 2 ].y += 0.025;
+					object.lensFlares[ 3 ].rotation = object.positionScreen.x * 0.5 + THREE.Math.degToRad( 45 );
 			}
 
 			function camTweener( newCamPosition, newTarget, time ) {

@@ -3,9 +3,9 @@
 var Planet = function( radius, segW, segH, texture ){
 
 	var 
-		planetTexture = new THREE.Texture(),
-		textureLoader = new THREE.ImageLoader(),
-		planetLod = new THREE.LOD(),
+		planetTexture,
+		textureLoader,
+		planetLod,
 		geometry,
 		material,
 		mesh,
@@ -23,6 +23,9 @@ var Planet = function( radius, segW, segH, texture ){
 		lodLevel = 3,
 		lodDistance = 1000;
 
+	// loadTexture( texture );
+	planetTexture = new THREE.Texture();
+	textureLoader = new THREE.ImageLoader();
 
 	textureLoader.addEventListener( 'load', function ( event ) {
 
@@ -33,24 +36,24 @@ var Planet = function( radius, segW, segH, texture ){
 
 	textureLoader.load( texture );
 
+	planetLod = new THREE.LOD();
+	material = new THREE.MeshLambertMaterial( { map: planetTexture, overdraw: true } );
+
+	for (var i = 0; i < lodLevel; i++) {
+		geometry = new THREE.SphereGeometry( radius, segW / ( i + 1) , segH / ( i + 1 ) );
+		mesh = new THREE.Mesh( geometry, material);
+		mesh.updateMatrix();
+		mesh.autoUpdateMatrix = false;
+		planetLod.addLevel( mesh, i * lodDistance);	
+	}
+	
+	planetLod.updateMatrix();
 
 	return {
 
 		mesh: planetLod,
 
     	drawPlanet: function ( scene ) {
-
-				material = new THREE.MeshLambertMaterial( { map: planetTexture, overdraw: true } );
-
-				for (var i = 0; i < lodLevel; i++) {
-					geometry = new THREE.SphereGeometry( radius, segW / ( i + 1) , segH / ( i + 1 ) );
-					mesh = new THREE.Mesh( geometry, material);
-					mesh.updateMatrix();
-					mesh.autoUpdateMatrix = false;
-					planetLod.addLevel( mesh, i * lodDistance);	
-				}
-				
-				planetLod.updateMatrix();
 				scene.add( planetLod );
             },
 

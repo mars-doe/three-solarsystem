@@ -16,7 +16,7 @@ var Trajectory = function( start, end, resolution){
 
 	return {
 		
-		// line: line,
+		line: line,
 
    		drawTrajectory: function ( start, end ) {
    			scene.remove(line);
