@@ -50,6 +50,7 @@
 
 		<div id="info">MARS-DOE Solar System</div>
 		<div id="container"></div>
+		<div id="loading">LOADING!!</div>
 		<button id="cam1">Camera Position 1</button>
 		<button id="cam2">Camera Position 2</button>
 		<button id="cam3">Camera Position 3</button>
@@ -103,33 +104,171 @@
 					};
 			})();
 
-			var vertexTest, fragmentTest;
+			/********************************
+				JQUERY
+			********************************/
 
-			$( document ).ready( function() {
+			$(document).ready( function() {
+
+				$("#loading").show();
+
 				$.ajax({
-					url: "./shaders/vertexTest.vs",
-					dataType: 'text',
-					success: function ( txt ) {
-						vertexTest = txt;
+					url: "./shaders/lavaShader.xml",
+					dataType: 'xml',
+					success: function ( xml ) {
+						//xmlDoc = $.parseXML( $xml );
+						$vertexShader = $(xml).find( "vertex" ).text();
+						$fragmentShader = $(xml).find( "fragment" ).text();
+						//console.log(vertexShader)
+						init( $vertexShader, $fragmentShader);
+						$("#loading").hide();
 					},
-					error: function( txt ) {
-						//AJAX request not completed
+					error: function( text ) {
 						alert( "vertex not loaded" );
+					},
+					complete: function(){
+
 					}
+				});
+			});
+
+			// function shadersLoadComplete() {
+
+			// 	$("#loading").show();
+
+			// }
+
+
+			$(function() {
+				$( "#slider" ).slider( { 
+					animate: true,
+					range: "min",
+					value: 50,
+					min: 10,
+					max: 100,
+					step: 1,
+
 				});
 
-				$.ajax({
-					url: "./shaders/fragmentTest.fs",
-					dataType: 'text',
-					success: function ( txt ) {
-						fragmentTest = txt;
+				$( "#cam1" )
+					.button()
+					.click(function( event ) {
+
+						camNextPosition	= {
+							x: -1000, 
+							y: 400, 
+							z: -250 
+						};
+
+						camNextTarget = {
+							x: 0,
+							y: 0,
+							z: 0
+						};
+
+						TWEEN.removeAll();
+						camTweener( camNextPosition, camNextTarget, 1500 );
+
+				});
+
+				$( "#cam2" )
+					.button()
+					.click(function( event ) {
+
+						camNextPosition	= {
+							x: 0, 
+							y: 12000, 
+							z: 500
+						};
+
+						camNextTarget = {
+							x: 0,
+							y: 0,
+							z: 0
+						};
+
+						TWEEN.removeAll();
+						camTweener( camNextPosition, camNextTarget, 5000 );
+				});	
+
+				$( "#cam3" )
+					.button()
+					.click(function( event ) {
+
+						camNextPosition	= {
+							x: 0, 
+							y: 1000, 
+							z: 5000 
+						};
+
+						camNextTarget = {
+							x: 0,
+							y: 0,
+							z: 0
+						};
+
+						TWEEN.removeAll();
+						camTweener( camNextPosition, camNextTarget, 1500 );
+				});
+
+				$( "#cam4" )
+					.button()
+					.click(function( event ) {
+
+						camNextPosition	= {
+							x: 0, 
+							y: 50, 
+							z: 250 
+						};
+
+						TWEEN.removeAll();
+						camTweener( camNextPosition, planets[2].mesh.position, 1500 );
+				});
+
+				$( "#cam5" )
+					.button()
+					.click(function( event ) {
+
+						camNextPosition	= {
+							x: 50, 
+							y: 50, 
+							z: 300 
+						};
+
+						TWEEN.removeAll();
+						camTweener( camNextPosition, planets[3].mesh.position, 1500 );
+				});
+
+				$( "#traject" )
+					.button()
+					.click(function( event ) {
+
+						trajectory.drawTrajectory( planets[2].mesh.position, planets[3].mesh.position, scene );
+
+				});
+
+				$( "#removeTraject" )
+					.button()
+					.click(function( event ) {
+
+						trajectory.removeTrajectory( scene );
+
+				});
+
+				$( "#speedSlider" ).slider( {
+					animate: true,
+					range: "min",
+					value: 10,
+					min: 0,
+					max: 50,
+					step: 1,
+					create: function() {
+						timerMultiplier = $( "#speedSlider" ).slider( "option", "value" );
 					},
-					error: function( txt ) {
-						alert( "fragement not loaded" );
+					change: function() {
+						timerMultiplier = $( "#speedSlider" ).slider( "option", "value" );
 					}
 				});
-				console.log( vertexTest );
-				init();
 			});
 
 			/********************************
@@ -144,42 +283,30 @@
 				FAR = 100000;
 
 			var $container = $('#container');
-			var stats, scene, camera, pointLight, camTarget, camNextPosition, camNextRotation, camNextTarget, 
-				ambientLight, renderer, composer, controls, tween, tweenBack, uniforms, shaderTest;
 
-			var solarSystem, sun, trajectory;
-			var planets = new Array(8);
+			var stats, scene, solarSystem, camera, pointLight, camTarget, camNextPosition, camNextRotation, camNextTarget, 
+				ambientLight, renderer, composer, controls, tween, tweenBack;
+
+			var uniforms, geometry, material, mesh;
 
 			var planetSize = [ 2439.7, 6051.8, 6371.00, 3389.5, 69911, 58232, 25362, 24622 ];
-			var planetTextures = [
-				'./models/solarsystem/mercurymap.jpg',
-				'./models/solarsystem/venusmap.jpg',
-				'./models/solarsystem/earthmap.jpg',
-				'./models/solarsystem/marsmap.jpg',
-				'./models/solarsystem/jupitermap.jpg',
-				'./models/solarsystem/saturnmap.jpg',
-				'./models/solarsystem/uranusmap.jpg',
-				'./models/solarsystem/neptunemap.jpg',
-			];
-			
-			var sunTexture = './models/solarsystem/sunmap.jpg';
-
 			var semiMajor = [ 57909227, 108209475, 149598262, 227943824, 778340821, 1426666422, 2870658186, 4498396441 ];
 			var eccentricity = [ 0.20563593, 0.00677672, 0.01671123, 0.0933941,	0.04838624,	0.05386179,	0.04725744,	0.00859048 ];
 			var aphelion = [ 69817445, 108942780, 152098233, 249232432, 816001807, 1503509229, 3006318143, 4537039826 ];
 			var orbitTime = [ 88.0, 224.7, 365.2, 687, 4332, 10760, 30700, 60200 ];
-			
-			var axisRez = 50;
 
-			var sunScale = .00001, planetScale = .0001, ssScale = .000001;
-			
+			var axisRez = 50;
+			var sunScale = .00001, planetScale = .0001, ssScale = .000001;				
 			var planetSegW = 15, planetSegH = 15;
 
+			var planets = [];	
+
+			var trajectory;
+
 			var timer = 1, timerMultiplier = 0;
+			var clock = new THREE.Clock();
 
-			//init();
-
-			function init() {
+			function init( vs, fs) {
 
 				/********************************
 					SCENE SETUP
@@ -212,6 +339,7 @@
 				scene.add( solarSystem );
 
 				trajectory = new Trajectory ( 2 );
+				
 				/********************************
 					CONTROLS
 				********************************/
@@ -222,25 +350,64 @@
 				/********************************
 					LOAD SHADERS
 				********************************/
-				shaderTest = new THREE.ShaderMaterial( {
-				    vertexShader:   vertexTest,
-				    fragmentShader: fragmentTest
-				});
 
-				sphere = new THREE.SphereGeometry( 500, 15, 15 );
-				mesh = new THREE.Geometry( sphere, shaderTest);
-				scene.add( mesh );
+	
+
 
 				/********************************
 					SUN & PLANETS
 				********************************/
 
-				sun = new Planet( 1392684 * sunScale, planetSegW, planetSegH, sunTexture );
-				sun.drawPlanet( scene );
-				
-				for ( var i = 0; i < planets.length; i ++ ) {
-				
-					planets[i] = new Planet( planetSize[i] * planetScale, planetSegW, planetSegH, planetTextures[i] );
+				uniforms = {
+
+					time: { type: "f", value: 1.0 },
+					resolution: { type: "v2", value: new THREE.Vector2() },
+
+					fogDensity: { type: "f", value: 0 },
+					fogColor: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) },
+
+					texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "./models/solarsystem/sunmap.jpg" ) },
+					texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "textures/lava/lavatile.jpg" ) },
+
+					uvScale: { type: "v2", value: new THREE.Vector2( 0.75, 1.0 ) }
+
+				};
+
+				uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
+				uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
+
+				var size = 100;
+
+				material = new THREE.ShaderMaterial( {
+
+					uniforms: uniforms,
+					vertexShader: vs,
+					fragmentShader: fs
+
+				} );
+
+				mesh = new THREE.Mesh( new THREE.SphereGeometry( 1392684 * sunScale, planetSegW, planetSegH ), material );
+				mesh.rotation.x = 0.3;
+				scene.add( mesh );
+
+				// var sunTexture = './models/solarsystem/sunmap.jpg';
+				// var sun = new Planet( 1392684 * sunScale, planetSegW, planetSegH, sunTexture );
+				// sun.drawPlanet( scene );
+	
+				var planetTextures = [
+					'./models/solarsystem/mercurymap.jpg',
+					'./models/solarsystem/venusmap.jpg',
+					'./models/solarsystem/earthmap.jpg',
+					'./models/solarsystem/marsmap.jpg',
+					'./models/solarsystem/jupitermap.jpg',
+					'./models/solarsystem/saturnmap.jpg',
+					'./models/solarsystem/uranusmap.jpg',
+					'./models/solarsystem/neptunemap.jpg',
+				];
+
+				for ( var i = 0; i < 8; i ++ ) {
+
+					planets.push( new Planet( planetSize[i] * planetScale, planetSegW, planetSegH, planetTextures[i] ) );
 					planets[i].setOrbit( semiMajor[i], aphelion[i], eccentricity[i], ssScale );
 					planets[i].drawPlanet( scene );
 					planets[i].drawOrbit( axisRez );
@@ -250,6 +417,7 @@
 				/********************************
 					STARS
 				********************************/
+
 				starField = new Stars( 100000, 100 );
 				scene.add( starField );
 				
@@ -257,12 +425,13 @@
 					LENS FLARE
 				********************************/
 
-				var flare = addLensFlare( 0, 0, 0, 5, sunTexture );
-				scene.add( flare );
+				// var flare = addLensFlare( 0, 0, 0, 5, sunTexture );
+				// scene.add( flare );
 
 				/********************************
 					RENDERER
 				********************************/
+
 				renderer = Detector.webgl? new THREE.WebGLRenderer( { antialias: true } ): new THREE.CanvasRenderer();;
 				renderer.setSize( WIDTH, HEIGHT );
 
@@ -273,6 +442,7 @@
 				/********************************
 					POST-PROCESSING
 				********************************/
+
 				var renderModel = new THREE.RenderPass( scene, camera );
 				var effectBloom = new THREE.BloomPass( 1.25 );
 				var effectFilm = new THREE.FilmPass( 0.35, 0.95, 2048, false );
@@ -288,147 +458,11 @@
 				/********************************
 					STATS
 				********************************/
+
 				stats = new Stats();
 				stats.domElement.style.position = 'absolute';
 				stats.domElement.style.top = '0px';
 				$container.append( stats.domElement );
-
-				/********************************
-					JQUERY CAMERA POSITIONS
-				********************************/
-
-				$(function() {
-					$( "#slider" ).slider( { 
-						animate: true,
-						range: "min",
-						value: 50,
-						min: 10,
-						max: 100,
-						step: 1,
-
-					});
-
-					$( "#cam1" )
-						.button()
-						.click(function( event ) {
-
-							camNextPosition	= {
-								x: -1000, 
-								y: 400, 
-								z: -250 
-							};
-
-							camNextTarget = {
-								x: 0,
-								y: 0,
-								z: 0
-							};
-
-							TWEEN.removeAll();
-							camTweener( camNextPosition, camNextTarget, 1500 );
-							//camTweener( camNextPosition, camNextRotation, camNextTarget, 1500 );
-
-					});
-
-					$( "#cam2" )
-						.button()
-						.click(function( event ) {
-
-							camNextPosition	= {
-								x: 0, 
-								y: 12000, 
-								z: 500
-							};
-
-							camNextTarget = {
-								x: 0,
-								y: 0,
-								z: 0
-							};
-
-							TWEEN.removeAll();
-							camTweener( camNextPosition, camNextTarget, 5000 );
-					});	
-
-					$( "#cam3" )
-						.button()
-						.click(function( event ) {
-
-							camNextPosition	= {
-								x: 0, 
-								y: 1000, 
-								z: 5000 
-							};
-
-							camNextTarget = {
-								x: 0,
-								y: 0,
-								z: 0
-							};
-
-							TWEEN.removeAll();
-							camTweener( camNextPosition, camNextTarget, 1500 );
-					});
-
-					$( "#cam4" )
-						.button()
-						.click(function( event ) {
-
-							camNextPosition	= {
-								x: 0, 
-								y: 50, 
-								z: 250 
-							};
-
-							TWEEN.removeAll();
-							camTweener( camNextPosition, planets[2].mesh.position, 1500 );
-					});
-
-					$( "#cam5" )
-						.button()
-						.click(function( event ) {
-
-							camNextPosition	= {
-								x: 50, 
-								y: 50, 
-								z: 300 
-							};
-
-							TWEEN.removeAll();
-							camTweener( camNextPosition, planets[3].mesh.position, 1500 );
-					});
-
-					$( "#traject" )
-						.button()
-						.click(function( event ) {
-
-							trajectory.drawTrajectory( planets[2].mesh.position, planets[3].mesh.position, scene );
-
-					});
-
-					$( "#removeTraject" )
-						.button()
-						.click(function( event ) {
-
-							trajectory.removeTrajectory( scene );
-
-					});
-
-					$( "#speedSlider" ).slider( {
-						animate: true,
-						range: "min",
-						value: 10,
-						min: 0,
-						max: 50,
-						step: 1,
-						create: function() {
-							timerMultiplier = $( "#speedSlider" ).slider( "option", "value" );
-						},
-						change: function() {
-							timerMultiplier = $( "#speedSlider" ).slider( "option", "value" );
-						}
-					});
-				});
 
 				window.addEventListener( 'resize', onWindowResize, false );
 
@@ -436,53 +470,55 @@
 
 			}
 
-				function addLensFlare( x, y, z, size, overrideImage ){
-					var flareColor = new THREE.Color( 0xffffff );
+			function addLensFlare( x, y, z, size, overrideImage ){
 
-					var lensFlare = new THREE.LensFlare( overrideImage, 700, 0.0, THREE.AdditiveBlending, flareColor );
+				var flareColor = new THREE.Color( 0xffffff );
 
-					var textureFlare0 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare0.png" );
-					var textureFlare2 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare2.png" );
-					var textureFlare3 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare3.png" );
+				var lensFlare = new THREE.LensFlare( overrideImage, 700, 0.0, THREE.AdditiveBlending, flareColor );
 
-					lensFlare.add( textureFlare0, 200, 0.0, THREE.AdditiveBlending );
-					lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
-					lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
-					lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+				var textureFlare0 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare0.png" );
+				var textureFlare2 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare2.png" );
+				var textureFlare3 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare3.png" );
 
-					lensFlare.add( textureFlare3, 60, 0.6, THREE.AdditiveBlending );
-					lensFlare.add( textureFlare3, 70, 0.7, THREE.AdditiveBlending );
-					lensFlare.add( textureFlare3, 120, 0.9, THREE.AdditiveBlending );
-					lensFlare.add( textureFlare3, 70, 1.0, THREE.AdditiveBlending );
+				lensFlare.add( textureFlare0, 200, 0.0, THREE.AdditiveBlending );
+				lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+				lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
+				lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
 
-					lensFlare.customUpdateCallback = lensFlareUpdateCallback;
+				lensFlare.add( textureFlare3, 60, 0.6, THREE.AdditiveBlending );
+				lensFlare.add( textureFlare3, 70, 0.7, THREE.AdditiveBlending );
+				lensFlare.add( textureFlare3, 120, 0.9, THREE.AdditiveBlending );
+				lensFlare.add( textureFlare3, 70, 1.0, THREE.AdditiveBlending );
 
-					lensFlare.position = new THREE.Vector3(x,y,z);
-					lensFlare.size = size ? size : 16000 ;
-					return lensFlare;
+				lensFlare.customUpdateCallback = lensFlareUpdateCallback;
+
+				lensFlare.position = new THREE.Vector3(x,y,z);
+				lensFlare.size = size ? size : 16000 ;
+				return lensFlare;
+
+			}
+
+			function lensFlareUpdateCallback( object ) {
+
+				var f, fl = object.lensFlares.length;
+				var flare;
+				var vecX = -object.positionScreen.x * 2;
+				var vecY = -object.positionScreen.y * 2;
+
+
+				for( f = 0; f < fl; f++ ) {
+
+					   flare = object.lensFlares[ f ];
+
+					   flare.x = object.positionScreen.x + vecX * flare.distance;
+					   flare.y = object.positionScreen.y + vecY * flare.distance;
+
+					   flare.rotation = 0;
+
 				}
 
-				function lensFlareUpdateCallback( object ) {
-
-					var f, fl = object.lensFlares.length;
-					var flare;
-					var vecX = -object.positionScreen.x * 2;
-					var vecY = -object.positionScreen.y * 2;
-
-
-					for( f = 0; f < fl; f++ ) {
-
-						   flare = object.lensFlares[ f ];
-
-						   flare.x = object.positionScreen.x + vecX * flare.distance;
-						   flare.y = object.positionScreen.y + vecY * flare.distance;
-
-						   flare.rotation = 0;
-
-					}
-
-					object.lensFlares[ 2 ].y += 0.025;
-					object.lensFlares[ 3 ].rotation = object.positionScreen.x * 0.5 + THREE.Math.degToRad( 45 );
+				object.lensFlares[ 2 ].y += 0.025;
+				object.lensFlares[ 3 ].rotation = object.positionScreen.x * 0.5 + THREE.Math.degToRad( 45 );
 			}
 
 			function camTweener( newCamPosition, newTarget, time ) {
@@ -498,7 +534,7 @@
 					camera.rotation.z = camCurrentRotation.z;
 
 					camTarget = camCurrentTarget;
-					//camera.lookAt( camTarget );
+
 				}
 
 				var camCurrentPosition	= {
@@ -536,12 +572,6 @@
 					} )
 					.onUpdate( update )
 
-				// tweenRotation = new TWEEN.Tween( camCurrentRotation )
-				// 	.to( newCamRotation, time)
-				// 	.delay(0)
-				// 	.easing(TWEEN.Easing.Sinusoidal.InOut)
-				// 	.onUpdate( update );
-
 				tweenPOI = new TWEEN.Tween( camCurrentTarget )
 					.to( newTarget, time)
 					.delay(0)
@@ -549,7 +579,6 @@
 					.onUpdate( update );
 
 				tweenPosition.start();
-				//tweenRotation.start();
 				tweenPOI.start();
 			}
 
@@ -558,13 +587,15 @@
 				windowHalfX = $(window).width() / 2;
 				windowHalfY = $(window).height() / 2;
 
+				uniforms.resolution.value.x = window.innerWidth;
+				uniforms.resolution.value.y = window.innerHeight;
+
 				camera.aspect = $(window).width() / $(window).height();
 				camera.updateProjectionMatrix();
 
 				renderer.setSize( $(window).width(), $(window).height()-100 );
 
-				//controls.handleResize();
-				//composer.reset();
+				composer.reset();
 
 			}
 			
@@ -581,16 +612,16 @@
 				for ( var i = 0; i < planets.length; i ++ ) {
 					planets[i].startOrbit( -timer, orbitTime[i] );
 				}
+
 				timer++;
 				timer = timer + timerMultiplier;
-
-				// degreeRot = Math.floor( planets[2].mesh.rotation.y * ( 180 /  Math.PI ) );
 				
 			}
 
 			function render() {
 				
 				camera.lookAt( camTarget );
+
 				scene.updateMatrixWorld();
 				scene.traverse( function ( object ) {
 						if ( object instanceof THREE.LOD ) {
@@ -598,12 +629,17 @@
 					}
 				} );
 
+				var delta = 5 * clock.getDelta();
+				uniforms.time.value += 0.2 * delta;
+
 				renderer.render( scene, camera );
-				//renderer.clear();
-				//composer.render( 0.01 );
+				// renderer.clear();
+				// composer.render( 0.01 );
 
 			}
-			
+
+
+
 		</script>
 
 	</body>
