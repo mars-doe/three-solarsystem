@@ -117,11 +117,8 @@
 					dataType: 'xml',
 					success: function ( xml ) {
 						//xmlDoc = $.parseXML( $xml );
-						$vertexShader = $(xml).find( "vertex" ).text();
-						$fragmentShader = $(xml).find( "fragment" ).text();
-						//console.log(vertexShader)
-						init( $vertexShader, $fragmentShader);
-						$("#loading").hide();
+						vertexShader = $(xml).find( "vertex" ).text();
+						fragmentShader = $(xml).find( "fragment" ).text();
 					},
 					error: function( text ) {
 						alert( "vertex not loaded" );
@@ -132,12 +129,10 @@
 				});
 			});
 
-			// function shadersLoadComplete() {
-
-			// 	$("#loading").show();
-
-			// }
-
+			$(window).load(function() {
+				init();
+				$("#loading").hide();
+			});
 
 			$(function() {
 				$( "#slider" ).slider( { 
@@ -222,7 +217,7 @@
 						};
 
 						TWEEN.removeAll();
-						camTweener( camNextPosition, planets[2].mesh.position, 1500 );
+						camTweener( camNextPosition, planet[2].mesh.position, 1500 );
 				});
 
 				$( "#cam5" )
@@ -236,14 +231,14 @@
 						};
 
 						TWEEN.removeAll();
-						camTweener( camNextPosition, planets[3].mesh.position, 1500 );
+						camTweener( camNextPosition, planet[3].mesh.position, 1500 );
 				});
 
 				$( "#traject" )
 					.button()
 					.click(function( event ) {
 
-						trajectory.drawTrajectory( planets[2].mesh.position, planets[3].mesh.position, scene );
+						trajectory.drawTrajectory( planet[2].mesh.position, planet[3].mesh.position, scene );
 
 				});
 
@@ -282,12 +277,10 @@
 				NEAR = 1,
 				FAR = 100000;
 
-			var $container = $('#container');
+			var stats, scene, camera, camTarget, camNextPosition, camNextRotation, camNextTarget, 
+				renderer, composer, controls, tween;
 
-			var stats, scene, solarSystem, camera, pointLight, camTarget, camNextPosition, camNextRotation, camNextTarget, 
-				ambientLight, renderer, composer, controls, tween, tweenBack;
-
-			var uniforms, geometry, material, mesh;
+			var vertexShader, fragmentShader, uniforms;
 
 			var planetSize = [ 2439.7, 6051.8, 6371.00, 3389.5, 69911, 58232, 25362, 24622 ];
 			var semiMajor = [ 57909227, 108209475, 149598262, 227943824, 778340821, 1426666422, 2870658186, 4498396441 ];
@@ -296,22 +289,22 @@
 			var orbitTime = [ 88.0, 224.7, 365.2, 687, 4332, 10760, 30700, 60200 ];
 
 			var axisRez = 50;
-			var sunScale = .00001, planetScale = .0001, ssScale = .000001;				
+			var sunScale = .00001, planetScale = .001, ssScale = .000001;				
 			var planetSegW = 15, planetSegH = 15;
 
-			var planets = [];	
+			var planet = [], sun;	
 
 			var trajectory;
 
 			var timer = 1, timerMultiplier = 0;
 			var clock = new THREE.Clock();
 
-			function init( vs, fs) {
+			function init() {
 
 				/********************************
 					SCENE SETUP
 				********************************/
-				container = $('#container');
+				$container = $('#container');
 
 				scene = new THREE.Scene();
 				scene.fog = new THREE.FogExp2( 0x000000, 0.000025 );
@@ -323,11 +316,11 @@
 				camTarget = new THREE.Vector3();
 				camTarget = scene.position;
 				
-				ambientLight = new THREE.AmbientLight();
+				var ambientLight = new THREE.AmbientLight();
 				ambientLight.color.setRGB( .15, .15, .15 );
 				scene.add(ambientLight);
 
-				pointLight = new THREE.PointLight(0xFFFFFF);
+				var pointLight = new THREE.PointLight(0xFFFFFF);
 
 				pointLight.position.x = 0;
 				pointLight.position.y = 0;
@@ -335,7 +328,7 @@
 
 				scene.add(pointLight);
 
-				solarSystem = new THREE.Object3D();
+				var solarSystem = new THREE.Object3D();
 				scene.add( solarSystem );
 
 				trajectory = new Trajectory ( 2 );
@@ -366,35 +359,28 @@
 					fogDensity: { type: "f", value: 0 },
 					fogColor: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) },
 
-					texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "./models/solarsystem/sunmap.jpg" ) },
+					texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "./models/solarsystem/cloud.jpg" ) },
 					texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "textures/lava/lavatile.jpg" ) },
 
-					uvScale: { type: "v2", value: new THREE.Vector2( 0.75, 1.0 ) }
+					uvScale: { type: "v2", value: new THREE.Vector2( 0.5, 0.5 ) }
 
 				};
 
 				uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
 				uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
 
-				var size = 100;
-
-				material = new THREE.ShaderMaterial( {
+				var material = new THREE.ShaderMaterial( {
 
 					uniforms: uniforms,
-					vertexShader: vs,
-					fragmentShader: fs
+					vertexShader: vertexShader,
+					fragmentShader: fragmentShader
 
 				} );
 
-				mesh = new THREE.Mesh( new THREE.SphereGeometry( 1392684 * sunScale, planetSegW, planetSegH ), material );
-				mesh.rotation.x = 0.3;
-				scene.add( mesh );
-
-				// var sunTexture = './models/solarsystem/sunmap.jpg';
-				// var sun = new Planet( 1392684 * sunScale, planetSegW, planetSegH, sunTexture );
-				// sun.drawPlanet( scene );
+				sun = new Planet( 1392684 * sunScale, planetSegW, planetSegH, material, material );
+				sun.drawPlanet( scene );
 	
-				var planetTextures = [
+				var planetTexture = [
 					'./models/solarsystem/mercurymap.jpg',
 					'./models/solarsystem/venusmap.jpg',
 					'./models/solarsystem/earthmap.jpg',
@@ -407,10 +393,21 @@
 
 				for ( var i = 0; i < 8; i ++ ) {
 
-					planets.push( new Planet( planetSize[i] * planetScale, planetSegW, planetSegH, planetTextures[i] ) );
-					planets[i].setOrbit( semiMajor[i], aphelion[i], eccentricity[i], ssScale );
-					planets[i].drawPlanet( scene );
-					planets[i].drawOrbit( axisRez );
+					var planetMaterial = new THREE.MeshLambertMaterial( { 
+							map: THREE.ImageUtils.loadTexture( planetTexture[i]), 
+							overdraw: true 
+					});
+
+					var axisMaterial = new THREE.LineBasicMaterial( { 
+						color: 0xF22E2E, 
+						opacity: 0.25, 
+						linewidth: 1 
+					});
+
+					planet.push( new Planet( planetSize[i] * planetScale, planetSegW, planetSegH, planetMaterial, axisMaterial ) );
+					planet[i].setOrbit( semiMajor[i], aphelion[i], eccentricity[i], ssScale );
+					planet[i].drawPlanet( scene );
+					planet[i].drawOrbit( axisRez );
 
 				}		
 
@@ -609,8 +606,8 @@
 
 				render();
 
-				for ( var i = 0; i < planets.length; i ++ ) {
-					planets[i].startOrbit( -timer, orbitTime[i] );
+				for ( var i = 0; i < planet.length; i ++ ) {
+					planet[i].startOrbit( -timer, orbitTime[i] );
 				}
 
 				timer++;
