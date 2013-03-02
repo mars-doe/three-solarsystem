@@ -21,7 +21,7 @@ var Planet = function( radius, segW, segH, mat, axisMat ){
 		splinePoints,
 		axisPoints,
 		lodLevel = 3,
-		lodDistance = 1000;
+		lodDistance = 3000;
 
 	return {
 
