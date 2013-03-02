@@ -58,7 +58,7 @@ var Planet = function( radius, segW, segH, mat, axisMat ){
 
 		},
 
-		drawOrbit: function( axisRez ){
+		drawOrbit: function( axisRez, scene ){
 
 			lineLod = new THREE.LOD();
  
