@@ -1,5 +1,3 @@
-// var planetTexture, textureLoader;
-
 var Planet = function( radius, segW, segH, mat, axisMat ){
 
 	var 

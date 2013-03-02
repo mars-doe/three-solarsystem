@@ -1,7 +1,3 @@
-
-/********************************
-	THREE VARIABLES
-********************************/
 var WIDTH = $(window).width(),
     HEIGHT = $(window).height();
 
@@ -148,8 +144,8 @@ function init() {
 		fogDensity: { type: "f", value: 0 },
 		fogColor: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) },
 
-		texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "textures/lava/cloud.png" ) },
-		texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "textures/lava/lavatile.jpg" ) },
+		texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "./textures/lava/cloud.png" ) },
+		texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "./textures/lava/lavatile.jpg" ) },
 
 		uvScale: { type: "v2", value: new THREE.Vector2( 0.5, 0.5 ) }
 
@@ -420,11 +416,12 @@ function render() {
 	var delta = 5 * clock.getDelta();
 	uniforms.time.value += 0.2 * delta;
 
-	renderer.clear();
-	renderer.render( scene, camera );
 	// composer.render( 0.01 );
 
 	setCSSWorld();
 	setCSSCamera(camera, fovValue);
+
+	renderer.clear();
+	renderer.render( scene, camera );
 
 }
