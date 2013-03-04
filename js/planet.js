@@ -1,4 +1,5 @@
-var Planet = function( radius, segW, segH, mat, axisMat ){
+
+var Planet = function( segW, segH, mat, axisMat ){
 
 	var 
 		planetTexture = new THREE.Texture(),
@@ -21,21 +22,22 @@ var Planet = function( radius, segW, segH, mat, axisMat ){
 		lodLevel = 3,
 		lodDistance = 3000;
 
+		for (var i = 0; i < lodLevel; i++) {
+			geometry = new THREE.SphereGeometry( 1, segW / ( i + 1) , segH / ( i + 1 ) );
+			mesh = new THREE.Mesh( geometry, planetMaterial);
+			mesh.updateMatrix();
+			mesh.autoUpdateMatrix = false;
+			planetLod.addLevel( mesh, i * lodDistance);	
+		}
+		
+		planetLod.updateMatrix();
+
+
 	return {
 
 		mesh: planetLod,
 
     	drawPlanet: function ( scene ) {
-
-				for (var i = 0; i < lodLevel; i++) {
-					geometry = new THREE.SphereGeometry( radius, segW / ( i + 1) , segH / ( i + 1 ) );
-					mesh = new THREE.Mesh( geometry, planetMaterial);
-					mesh.updateMatrix();
-					mesh.autoUpdateMatrix = false;
-					planetLod.addLevel( mesh, i * lodDistance);	
-				}
-				
-				planetLod.updateMatrix();
 				scene.add( planetLod );
             },
 
@@ -57,9 +59,8 @@ var Planet = function( radius, segW, segH, mat, axisMat ){
 		},
 
 		drawOrbit: function( axisRez, scene ){
-
 			lineLod = new THREE.LOD();
- 
+
 			for (var i = 0; i < lodLevel; i++) {
 
 				axisRez = axisRez / ( i + 1 );
@@ -95,11 +96,12 @@ var Planet = function( radius, segW, segH, mat, axisMat ){
 			scene.remove( line );
 		},
 
-		startOrbit: function( time, days ){
+		orbit: function( time, days ){
+
 			var orbitTime = time / days;
+
 			planetLod.position.x = semiMaj * Math.cos( axisRez * Math.PI * 2 + orbitTime) * ssScale + ( ( aph - semiMaj ) * ssScale );
 			planetLod.position.z = semiMin * Math.sin( axisRez * Math.PI * 2 + orbitTime) * ssScale;
-			//planetLod.rotation.y = time;
 
 		}
 	}

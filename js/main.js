@@ -11,6 +11,7 @@ var stats, scene, camera, camTarget, camNextPosition, camNextRotation, camNextTa
 
 var vertexShader, fragmentShader, uniforms;
 
+var planetName = [ "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune" ];
 var planetSize = [ 2439.7, 6051.8, 6371.00, 3389.5, 69911, 58232, 25362, 24622 ];
 var semiMajor = [ 57909227, 108209475, 149598262, 227943824, 778340821, 1426666422, 2870658186, 4498396441 ];
 var eccentricity = [ 0.20563593, 0.00677672, 0.01671123, 0.0933941,	0.04838624,	0.05386179,	0.04725744,	0.00859048 ];
@@ -32,7 +33,7 @@ var clock = new THREE.Clock();
 
 //CSS3D vars:
 var screenWhalf, screenHhalf;
-var divCSSWorld, divCSSCamera;
+var CSSWorld, CSSCamera;
 var divCube;
 var fovValue;
 
@@ -49,22 +50,29 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 				window.mozRequestAnimationFrame    || 
 				window.oRequestAnimationFrame      || 
 				window.msRequestAnimationFrame     || 
-		function(/* function */ callback, /* DOMElement */ element){
+			function(/* function */ callback, /* DOMElement */ element){
 			window.setTimeout(callback, 1000 / 60);
 		};
 })();
 
+function setLoadMessage( msg ){
+	$( '#loadtext' ).html(msg + "...");
+}
+
 $(document).ready( function() {
 
-	$("#loading").show();
+	$( '#loadtext' ).show();
+	setLoadMessage("Loading the Solar System");
 
 	$.ajax({
 		url: "./shaders/lavaShader.xml",
 		dataType: 'xml',
 		success: function ( xml ) {
 			//xmlDoc = $.parseXML( $xml );
+
 			vertexShader = $(xml).find( "vertex" ).text();
 			fragmentShader = $(xml).find( "fragment" ).text();
+			setLoadMessage("shaders loaded");
 		},
 		error: function( text ) {
 			alert( "vertex not loaded" );
@@ -76,10 +84,14 @@ $(document).ready( function() {
 });
 
 $(window).load(function() {
+
+	CSSWorld = document.getElementById('css-world');
+	CSSCamera = document.getElementById('css-camera');
+
 	init();
-	initCSS3D();
+	initCSS3D( CSSWorld, CSSCamera );
 	animate();
-	$("#loading").hide();
+	$("#loadtext").hide();
 });
 
 
@@ -88,14 +100,14 @@ function init() {
 	/********************************
 		SCENE SETUP
 	********************************/
-	$container = $('#container');
+	$container = $("#container");
 
 	scene = new THREE.Scene();
 	scene.fog = new THREE.FogExp2( 0x000000, 0.000025 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
 	camera.position.y = 200;
-	camera.position.z = 1500;
+	camera.position.z = 1000;
 
 	camTarget = new THREE.Vector3();
 	camTarget = scene.position;
@@ -113,8 +125,6 @@ function init() {
 	scene.add(pointLight);
 
 	solarSystem = new THREE.Object3D();
-
-	
 	
 	/********************************
 		CONTROLS
@@ -122,13 +132,6 @@ function init() {
 
 	controls = new THREE.OrbitControls( camera );
 	controls.addEventListener( 'change', render );
-
-	/********************************
-		LOAD SHADERS
-	********************************/
-
-
-
 
 	/********************************
 		SUN & PLANETS
@@ -162,8 +165,16 @@ function init() {
 
 	} );
 
-	sun = new Planet( 1392684 * sunScale, planetSegW, planetSegH, material, material );
+	sun = new Planet( planetSegW, planetSegH, material, material );
+	sun.mesh.scale = { x: 1392684 * sunScale, y: 1392684 * sunScale, z: 1392684 * sunScale };
 	sun.drawPlanet( solarSystem );
+
+	// var compass = createCompassOrWhatever();
+	// var compass_gyro = new THREE.Gyroscope();
+	// compass_gyro.add( compass );
+	// character.add( compass_gyro );
+
+	attachMarker( "Sun", sun.mesh, 1, CSSCamera );
 
 	var planetTexture = [
 		'./models/solarsystem/mercurymap.jpg',
@@ -188,13 +199,16 @@ function init() {
 			opacity: 0.25, 
 			linewidth: 1 
 		});
+		var scale = planetSize[i] * planetScale;
 
-		planet.push( new Planet( planetSize[i] * planetScale, planetSegW, planetSegH, planetMaterial, axisMaterial ) );
+		planet.push( new Planet( planetSegW, planetSegH, planetMaterial, axisMaterial ) );
+		planet[i].mesh.scale = { x: scale, y: scale, z: scale };
 		planet[i].setOrbit( semiMajor[i], aphelion[i], eccentricity[i], ssScale );
 		planet[i].drawPlanet( solarSystem );
 		planet[i].drawOrbit( axisRez, solarSystem );
+		attachMarker( planetName[i], planet[i].mesh, 1, CSSCamera );
 
-	}		
+	}
 
 	/********************************
 		STARS
@@ -292,12 +306,12 @@ function lensFlareUpdateCallback( object ) {
 
 	for( f = 0; f < fl; f++ ) {
 
-		   flare = object.lensFlares[ f ];
+	   flare = object.lensFlares[ f ];
 
-		   flare.x = object.positionScreen.x + vecX * flare.distance;
-		   flare.y = object.positionScreen.y + vecY * flare.distance;
+	   flare.x = object.positionScreen.x + vecX * flare.distance;
+	   flare.y = object.positionScreen.y + vecY * flare.distance;
 
-		   flare.rotation = 0;
+	   flare.rotation = 0;
 
 	}
 
@@ -368,6 +382,7 @@ function camTweener( newCamPosition, newTarget, time ) {
 
 function onWindowResize() {
 
+
 	windowHalfX = $(window).width() / 2;
 	windowHalfY = $(window).height() / 2;
 
@@ -377,7 +392,13 @@ function onWindowResize() {
 	camera.aspect = $(window).width() / $(window).height();
 	camera.updateProjectionMatrix();
 
+	fovValue = 0.5 / Math.tan(camera.fov * Math.PI / 360) * window.innerHeight;
+	setCSSCamera(camera, fovValue);
+	updateMarkers();
+
 	renderer.setSize( $(window).width(), $(window).height() );
+
+	//updateMarker();
 
 	composer.reset();
 
@@ -387,23 +408,17 @@ function animate() {
 
 	requestAnimationFrame( animate );
 
+    camera.updateProjectionMatrix();
+	fovValue = 0.5 / Math.tan(camera.fov * Math.PI / 360) * HEIGHT;
+
+	setCSSWorld();
+	setCSSCamera(camera, fovValue);
+
+	updateMarkers();
 	controls.update();
 	stats.update();
 	TWEEN.update();
 
-	render();
-
-	for ( var i = 0; i < planet.length; i ++ ) {
-		planet[i].startOrbit( -timer, orbitTime[i] );
-	}
-
-	timer++;
-	timer = timer + timerMultiplier;
-	
-}
-
-function render() {
-	
 	camera.lookAt( camTarget );
 
 	scene.updateMatrixWorld();
@@ -416,10 +431,18 @@ function render() {
 	var delta = 5 * clock.getDelta();
 	uniforms.time.value += 0.2 * delta;
 
-	// composer.render( 0.01 );
+	render();
 
-	setCSSWorld();
-	setCSSCamera(camera, fovValue);
+	for ( var i = 0; i < planet.length; i ++ ) {
+		planet[i].orbit( -timer, orbitTime[i] );
+	}
+	timer++;
+	timer = timer + timerMultiplier;
+}
+
+function render() {
+
+	// composer.render( 0.01 );
 
 	renderer.clear();
 	renderer.render( scene, camera );

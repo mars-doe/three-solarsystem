@@ -34,13 +34,13 @@
 
 		<script src="./js/main.js"></script>
 		<script src="./js/planet.js"></script>
+		<script src="./js/marker.js"></script>
 		<script src="./js/stars.js"></script>
 		<script src="./js/trajectory.js"></script>
 		<script src="./js/css3Dworld.js"></script>
 
 
 		<script>
-		
 			/********************************
 				JQUERY
 			********************************/
@@ -193,6 +193,12 @@
 				overflow: hidden;
 			}
 
+	        canvas
+	        {
+	            pointer-events: none;
+	            z-index: 10;
+	        }
+
 			#info {
 				position: absolute;
 				top: 0px; width: 100%;
@@ -209,16 +215,10 @@
 				width:70%;
 				background-color:#b0e0e6;
 			}
-
-	        canvas
-	        {
-	            pointer-events: none;
-	            z-index: 10;
-	        }
 	        
-	        #main-container
+	        #container
 	        {
-	            background: #fff;
+	            background: #000;
 	            width: 100%;
 	            height: 100%;
 	            margin: 0 auto;
@@ -252,48 +252,70 @@
 	            -moz-transform-style: preserve-3d;
 	        }
 	        
-	        #shape
+	        #marker_template
 	        {
 	            -webkit-transform-style: preserve-3d;
 	            -moz-transform-style: preserve-3d;
 	        }
 	        
-	        .plane
-	        {
-	            position: absolute;
-	            height: 20px;
-	            width: 50px;
-	            text-align: center;
-	            font-size: 12pt;
-	            color: white;
-	            background-color: rgba(255, 150, 0, .5);
-	            -webkit-backface-visibility: hidden;
-	            -moz-backface-visibility: hidden;
-	        }
-	        
-	        #shape.backfaces .plane
-	        {
-	            -webkit-backface-visibility: visible;
-	            -moz-backface-visibility: visible;
-	        }
-	        
-	        /* ---------- cube styles ------------- */
-	        .cube > .one
-	        {
+
+			.marker {
+				font-family: monospace;
+				-moz-user-select:0;
+				-khtml-user-select:none;
+				-webkit-user-select:none;
+				-ms-user-select:none;
+				user-select:none;
+				position:absolute;
+				min-width:20px;
+				-webkit-transform-origin: 0% 0%;
+				-webkit-transition:opacity .5s;
+				-moz-transition:opacity .5s;
+				-ms-transition:opacity .5s;
+				-o-transition:opacity .5s;
+				transition:opacity .5s;
+				display:inline;
+				padding: 0px 0px;
 	            opacity: .75;
-	            -webkit-transform: scale3d(1.0, 1.0, 1.0) translateZ(0px);
-	            -moz-transform: scale3d(1.0, 1.0, 1.0) translateZ(0px);
-	        }
+	
+			}
+
+			.marker span.name {
+				display: inline-block;
+				width: 100%;
+				color: #fff;
+				<!-- background-color: rgba(255, 150, 0, .5); -->
+				text-shadow:.1em .1em 4px #000;
+				-webkit-transition:text-shadow .25s;
+				-moz-transition:text-shadow .25s;
+				-ms-transition:text-shadow .25s;
+				-o-transition:text-shadow .25s;
+				transition:text-shadow .25s;
+				text-align:center;
+				margin-left:auto;
+				margin-right:auto;
+				padding:2px 2px;
+			}
+
+			.marker span.name:hover {
+				text-shadow:0 0 3px #fff, 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #fff;
+			}
+
 
 		</style>
 	</head>
 
 	<body>
-    <div id="container">
 
+	<div style="display:none">
+		<span id="marker_template" class="marker">
+			<span class="name">
+			</span>
+		</span>
+	</div>
+
+    <div id="container">
 		<div id="info">MARS-DOE Solar System</div>
-		 
-		<div id="loading">LOADING!!</div>
 		<button id="cam1">Camera Position 1</button>
 		<button id="cam2">Camera Position 2</button>
 		<button id="cam3">Camera Position 3</button>
@@ -304,17 +326,12 @@
 		<div id="speedSlider" class="center"></div>
 		
         <div id="css-container">
+        	<div id="loadtext"></div>
             <div id="css-world">
                 <div id="css-camera">
-                    <div id="shape" class="cube backfaces">
-                        <div class="plane one">
-                            Sun</div>
-                    </div>
+                	<!-- Marker Clones -->
                 </div>
             </div>
         </div>
-
-
-
 	</body>
 </html>
