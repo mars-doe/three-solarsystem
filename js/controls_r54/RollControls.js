@@ -1,10 +1,6 @@
 /**
  * @author mikael emtinger / http://gomo.se/
  * @author alteredq / http://alteredqualia.com/
- *
- * Eye is fixed in position, camera's up is fixed to +Y, direction is constantly 
- * updated, with direction of mouse on screen compared to screen's center determining
- * the direction of drift.
  */
 
 THREE.RollControls = function ( object, domElement ) {
@@ -99,8 +95,8 @@ THREE.RollControls = function ( object, domElement ) {
 		zTemp.copy( this.forward );
 		yTemp.set( 0, 1, 0 );
 
-		xTemp.crossVectors( yTemp, zTemp ).normalize();
-		yTemp.crossVectors( zTemp, xTemp ).normalize();
+		xTemp.cross( yTemp, zTemp ).normalize();
+		yTemp.cross( zTemp, xTemp ).normalize();
 
 		this.object.matrix.elements[0] = xTemp.x; this.object.matrix.elements[4] = yTemp.x; this.object.matrix.elements[8] = zTemp.x;
 		this.object.matrix.elements[1] = xTemp.y; this.object.matrix.elements[5] = yTemp.y; this.object.matrix.elements[9] = zTemp.y;
@@ -114,7 +110,7 @@ THREE.RollControls = function ( object, domElement ) {
 
 		// multiply camera with roll
 
-		this.object.matrix.multiply( rollMatrix );
+		this.object.matrix.multiplySelf( rollMatrix );
 		this.object.matrixWorldNeedsUpdate = true;
 
 		// set position
@@ -158,7 +154,7 @@ THREE.RollControls = function ( object, domElement ) {
 		xTemp.set( this.object.matrix.elements[0], this.object.matrix.elements[1], this.object.matrix.elements[2] );
 		xTemp.multiplyScalar( amount );
 
-		this.forward.sub( xTemp );
+		this.forward.subSelf( xTemp );
 		this.forward.normalize();
 
 	};
@@ -170,7 +166,7 @@ THREE.RollControls = function ( object, domElement ) {
 		yTemp.set( this.object.matrix.elements[4], this.object.matrix.elements[5], this.object.matrix.elements[6] );
 		yTemp.multiplyScalar( amount );
 
-		this.forward.add( yTemp );
+		this.forward.addSelf( yTemp );
 		this.forward.normalize();
 
 	};

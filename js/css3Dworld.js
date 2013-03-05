@@ -83,9 +83,9 @@ function toCSSMatrixPlanet( glObject, b, offsetX, offsetY ) {
     ];
   } else {
     f = [
-      a.elements[0], a.elements[1], a.elements[2], a.elements[3],
-      a.elements[4], a.elements[5], a.elements[6], a.elements[7],
-      a.elements[8], a.elements[9], a.elements[10], a.elements[11],
+      1, a.elements[1], a.elements[2], a.elements[3],
+      a.elements[4], 1, a.elements[6], a.elements[7],
+      a.elements[8], a.elements[9], a.elements[10], 1,
       glObject.position.x+(offsetX||0), glObject.position.y+(offsetY||0), glObject.position.z, a.elements[15]
     ];                
   }

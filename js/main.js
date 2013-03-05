@@ -133,6 +133,8 @@ function init() {
 	controls = new THREE.OrbitControls( camera );
 	controls.addEventListener( 'change', render );
 
+
+
 	/********************************
 		SUN & PLANETS
 	********************************/
@@ -167,14 +169,11 @@ function init() {
 
 	sun = new Planet( planetSegW, planetSegH, material, material );
 	sun.mesh.scale = { x: 1392684 * sunScale, y: 1392684 * sunScale, z: 1392684 * sunScale };
+	sun.mesh.name = "Sun";
 	sun.drawPlanet( solarSystem );
 
-	// var compass = createCompassOrWhatever();
-	// var compass_gyro = new THREE.Gyroscope();
-	// compass_gyro.add( compass );
-	// character.add( compass_gyro );
+	createMarker( "Sun", sun.mesh, 1, CSSCamera );
 
-	attachMarker( "Sun", sun.mesh, 1, CSSCamera );
 
 	var planetTexture = [
 		'./models/solarsystem/mercurymap.jpg',
@@ -204,11 +203,13 @@ function init() {
 		planet.push( new Planet( planetSegW, planetSegH, planetMaterial, axisMaterial ) );
 		planet[i].mesh.scale = { x: scale, y: scale, z: scale };
 		planet[i].setOrbit( semiMajor[i], aphelion[i], eccentricity[i], ssScale );
+		planet[i].mesh.name = planetName[i];
 		planet[i].drawPlanet( solarSystem );
 		planet[i].drawOrbit( axisRez, solarSystem );
-		attachMarker( planetName[i], planet[i].mesh, 1, CSSCamera );
+		createMarker( planetName[i], planet[i].mesh, 1, CSSCamera );
 
 	}
+	
 
 	/********************************
 		STARS
@@ -265,8 +266,6 @@ function init() {
 	window.addEventListener( 'resize', onWindowResize, false );
 
 }
-
-
 
 function addLensFlare( x, y, z, size, overrideImage ){
 
@@ -394,11 +393,10 @@ function onWindowResize() {
 
 	fovValue = 0.5 / Math.tan(camera.fov * Math.PI / 360) * window.innerHeight;
 	setCSSCamera(camera, fovValue);
-	updateMarkers();
 
 	renderer.setSize( $(window).width(), $(window).height() );
 
-	//updateMarker();
+	updateMarkers();
 
 	composer.reset();
 
@@ -436,8 +434,8 @@ function animate() {
 	for ( var i = 0; i < planet.length; i ++ ) {
 		planet[i].orbit( -timer, orbitTime[i] );
 	}
-	timer++;
-	timer = timer + timerMultiplier;
+
+	timer = timer + 1 * timerMultiplier;
 }
 
 function render() {
