@@ -127,7 +127,7 @@ function CSStransform( width, height, glObject, scale ) {
 /* Rounding error                                                       */
 /************************************************************************/
 function epsilon(a) {
-    if (Math.abs(a) < 0.000001) {
+    if (Math.abs(a) < 0.01) {
         return 0
     }
     return a;
