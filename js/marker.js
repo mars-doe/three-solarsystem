@@ -8,6 +8,7 @@ function updateMarkers() {
 }
 
 function createMarker( text, glObject, size, element ){
+  
   var template = document.getElementById('marker_template');
   var marker = template.cloneNode(true);
 
@@ -25,9 +26,7 @@ function createMarker( text, glObject, size, element ){
   marker.setPosition = function( x, y ){
 
     var projector = new THREE.Projector(),
-        pos = projector.projectVector( this.absPosition.clone().multiplyScalar(1), camera ),
-        width = window.innerWidth,
-        height = window.innerHeight;
+        pos = projector.projectVector( this.absPosition.clone().multiplyScalar(1), camera );
 
     this.style.left = '' + ( pos.x + x ) + 'px';
     this.style.top = '' + ( pos.y + y ) + 'px';
@@ -36,7 +35,7 @@ function createMarker( text, glObject, size, element ){
 
   marker.attachMarker = function (){
 
-    var transform = CSStransform( 0, 0, marker.obj, size );
+    var transform = CSStransform( marker.obj, size );
 
     this.style.WebkitTransformOrigin = "0% 0%";
     this.style.WebkitTransform = transform;

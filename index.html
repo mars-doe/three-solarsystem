@@ -19,6 +19,7 @@
 
 		<script src="./js/controls/OrbitControls.js"></script>	
 
+		<script src="./js/loaders/ColladaLoader.js"></script>
 		<script src="./js/geometries/LatheGeometry.js"></script>
 
 		<script src="./js/shaders/ConvolutionShader.js"></script>
@@ -34,10 +35,15 @@
 
 		<script src="./js/main.js"></script>
 		<script src="./js/planet.js"></script>
-		<script src="./js/marker.js"></script>
+		
 		<script src="./js/stars.js"></script>
 		<script src="./js/trajectory.js"></script>
-		<script src="./js/css3Dworld.js"></script>
+
+		<script src="./js/label.js"></script>
+		<script src="./js/marker.js"></script>
+
+		<script src="./js/camtweener.js"></script>
+		<script src="./js/addlensflare.js"></script>
 
 
 		<script>
@@ -251,24 +257,18 @@
 	            -webkit-transform-style: preserve-3d;
 	            -moz-transform-style: preserve-3d;
 	        }
-	        
-	        #marker_template
-	        {
-	            -webkit-transform-style: preserve-3d;
-	            -moz-transform-style: preserve-3d;
-	        }
+
+	        #label_template{}
 	        
 
-			.marker {
+			.label {
 				font-family: monospace;
-				-moz-user-select:0;
+				-moz-user-select:none;
 				-khtml-user-select:none;
 				-webkit-user-select:none;
 				-ms-user-select:none;
-				user-select:none;
 				position:absolute;
 				min-width: 0px;
-				-webkit-transform-origin: 0% 0%;
 				-webkit-transition:opacity .5s;
 				-moz-transition:opacity .5s;
 				-ms-transition:opacity .5s;
@@ -280,11 +280,10 @@
 	
 			}
 
-			.marker span.name {
+			.label span.name {
 				display: inline-block;
 				width: 100%;
 				color: #fff;
-				<!-- background-color: rgba(255, 150, 0, .5); -->
 				text-shadow:.1em .1em 4px #000;
 				-webkit-transition:text-shadow .25s;
 				-moz-transition:text-shadow .25s;
@@ -297,10 +296,9 @@
 				padding: 0px 0px;
 			}
 
-			.marker span.name:hover {
+			.label span.name:hover {
 				text-shadow:0 0 3px #fff, 0 0 5px #fff, 0 0 10px #fff, 0 0 20px #fff;
 			}
-
 
 		</style>
 	</head>
@@ -308,7 +306,7 @@
 	<body>
 
 	<div style="display:none">
-		<span id="marker_template" class="marker">
+		<span id="label_template" class="label">
 			<span class="name">
 			</span>
 		</span>
@@ -325,13 +323,6 @@
 		<button id="removeTraject">Remove Trajectory</button>
 		<div id="speedSlider" class="center"></div>
 		
-        <div id="css-container">
-        	<div id="loadtext"></div>
-            <div id="css-world">
-                <div id="css-camera">
-                	<!-- Marker Clones -->
-                </div>
-            </div>
-        </div>
+		<div id="loadtext"></div>
 	</body>
 </html>

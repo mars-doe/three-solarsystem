@@ -31,11 +31,16 @@ var trajectory;
 var timer = 1, timerMultiplier = 0;
 var clock = new THREE.Clock();
 
-//CSS3D vars:
-var screenWhalf, screenHhalf;
-var CSSWorld, CSSCamera;
-var divCube;
-var fovValue;
+var dae;
+var loader = new THREE.ColladaLoader();
+loader.options.convertUpAxis = true;
+loader.load( './models/galaxy.dae', function ( collada ) {
+
+	dae = collada.scene;
+	dae.scale.x = dae.scale.y = dae.scale.z = 10;
+	dae.updateMatrix();
+
+} );
 
 
 /********************************
@@ -43,17 +48,6 @@ var fovValue;
 ********************************/
 
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-
-	window.requestAnimationsFrame = ( function() {
-		return  window.requestAnimationFrame       || 
-				window.webkitRequestAnimationFrame || 
-				window.mozRequestAnimationFrame    || 
-				window.oRequestAnimationFrame      || 
-				window.msRequestAnimationFrame     || 
-			function(/* function */ callback, /* DOMElement */ element){
-			window.setTimeout(callback, 1000 / 60);
-		};
-})();
 
 function setLoadMessage( msg ){
 	$( '#loadtext' ).html(msg + "...");
@@ -89,8 +83,8 @@ $(window).load(function() {
 	CSSCamera = document.getElementById('css-camera');
 
 	init();
-	initCSS3D( CSSWorld, CSSCamera );
 	animate();
+	
 	$("#loadtext").hide();
 });
 
@@ -103,7 +97,7 @@ function init() {
 	$container = $("#container");
 
 	scene = new THREE.Scene();
-	scene.fog = new THREE.FogExp2( 0x000000, 0.000025 );
+	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
 	camera.position.y = 200;
@@ -111,6 +105,8 @@ function init() {
 
 	camTarget = new THREE.Vector3();
 	camTarget = scene.position;
+
+	fovValue = 0.5 / Math.tan(camera.fov * Math.PI / 360) * HEIGHT;
 	
 	var ambientLight = new THREE.AmbientLight();
 	ambientLight.color.setRGB( .15, .15, .15 );
@@ -124,20 +120,14 @@ function init() {
 
 	scene.add(pointLight);
 
-	solarSystem = new THREE.Object3D();
-	
-	/********************************
-		CONTROLS
-	********************************/
-
 	controls = new THREE.OrbitControls( camera );
 	controls.addEventListener( 'change', render );
-
-
 
 	/********************************
 		SUN & PLANETS
 	********************************/
+
+	solarSystem = new THREE.Object3D();
 
 	trajectory = new Trajectory ( 2 );
 
@@ -167,13 +157,10 @@ function init() {
 
 	} );
 
-	sun = new Planet( planetSegW, planetSegH, material, material );
-	sun.mesh.scale = { x: 1392684 * sunScale, y: 1392684 * sunScale, z: 1392684 * sunScale };
+	sun = new Planet( 1392684 * sunScale, planetSegW, planetSegH, material, material );
 	sun.mesh.name = "Sun";
 	sun.drawPlanet( solarSystem );
-
-	createMarker( "Sun", sun.mesh, 1, CSSCamera );
-
+	createLabel( "Sun", sun.mesh, 1, container );
 
 	var planetTexture = [
 		'./models/solarsystem/mercurymap.jpg',
@@ -195,27 +182,47 @@ function init() {
 
 		var axisMaterial = new THREE.LineBasicMaterial( { 
 			color: 0xF22E2E, 
-			opacity: 0.25, 
-			linewidth: 1 
+			opacity: .5, 
+			linewidth: .5 
 		});
+
 		var scale = planetSize[i] * planetScale;
 
-		planet.push( new Planet( planetSegW, planetSegH, planetMaterial, axisMaterial ) );
-		planet[i].mesh.scale = { x: scale, y: scale, z: scale };
+		planet.push( new Planet( scale, planetSegW, planetSegH, planetMaterial, axisMaterial ) );
 		planet[i].setOrbit( semiMajor[i], aphelion[i], eccentricity[i], ssScale );
 		planet[i].mesh.name = planetName[i];
 		planet[i].drawPlanet( solarSystem );
 		planet[i].drawOrbit( axisRez, solarSystem );
-		createMarker( planetName[i], planet[i].mesh, 1, CSSCamera );
+		//createMarker( planetName[i], planet[i].mesh, 1, CSSCamera );
+		createLabel( planetName[i], planet[i].mesh, 1, container );
 
 	}
-	
+
+	dae.scale.set( 50000, 50000, 50000 );
+	scene.add( dae );
+
+
+	// compass_gyro = new THREE.Gyroscope();
+	// compass_gyro.add( planet[2].mesh );
+	// sun.mesh.add( compass_gyro );
+
+	// var pts = [];//points array - the path profile points will be stored here
+	// var detail = .1;//half-circle detail - how many angle increments will be used to generate points
+	// var radius = 200;//radius for half_sphere
+
+	// for(var angle = 0.0; angle < Math.PI ; angle+= detail){ //loop from 0.0 radians to PI (0 - 180 degrees)
+	// 	pts.push(new THREE.Vector3(Math.cos(angle) * radius,0,Math.sin(angle) * radius));
+	// } //angle/radius to x,z
+	// geometry = new THREE.LatheGeometry( pts, 12 );//create the lathe with 12 radial repetitions of the profile
+
+	// latheMesh = new THREE.Mesh( geometry, planetMaterial);
+
 
 	/********************************
 		STARS
 	********************************/
 
-	starField = new Stars( 100000, 100 );
+	starField = new Stars( 40000, 100 );
 	solarSystem.add( starField );
 
 	/********************************
@@ -242,17 +249,17 @@ function init() {
 		POST-PROCESSING
 	********************************/
 
-	var renderModel = new THREE.RenderPass( scene, camera );
-	var effectBloom = new THREE.BloomPass( 1.25 );
-	var effectFilm = new THREE.FilmPass( 0.35, 0.95, 2048, false );
+	// var renderModel = new THREE.RenderPass( scene, camera );
+	// var effectBloom = new THREE.BloomPass( 1.25 );
+	// var effectFilm = new THREE.FilmPass( 0.35, 0.95, 2048, false );
 
-	effectFilm.renderToScreen = true;
+	// effectFilm.renderToScreen = true;
 
-	composer = new THREE.EffectComposer( renderer );
+	// composer = new THREE.EffectComposer( renderer );
 
-	composer.addPass( renderModel );
-	composer.addPass( effectBloom );
-	composer.addPass( effectFilm );
+	// composer.addPass( renderModel );
+	// composer.addPass( effectBloom );
+	// composer.addPass( effectFilm );
 
 	/********************************
 		STATS
@@ -267,118 +274,6 @@ function init() {
 
 }
 
-function addLensFlare( x, y, z, size, overrideImage ){
-
-	var flareColor = new THREE.Color( 0xffffff );
-
-	var lensFlare = new THREE.LensFlare( overrideImage, 700, 0.0, THREE.AdditiveBlending, flareColor );
-
-	var textureFlare0 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare0.png" );
-	var textureFlare2 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare2.png" );
-	var textureFlare3 = THREE.ImageUtils.loadTexture( "./textures/lensflare/lensflare3.png" );
-
-	lensFlare.add( textureFlare0, 200, 0.0, THREE.AdditiveBlending );
-	lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
-	lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
-	lensFlare.add( textureFlare2, 512, 0.0, THREE.AdditiveBlending );
-
-	lensFlare.add( textureFlare3, 60, 0.6, THREE.AdditiveBlending );
-	lensFlare.add( textureFlare3, 70, 0.7, THREE.AdditiveBlending );
-	lensFlare.add( textureFlare3, 120, 0.9, THREE.AdditiveBlending );
-	lensFlare.add( textureFlare3, 70, 1.0, THREE.AdditiveBlending );
-
-	lensFlare.customUpdateCallback = lensFlareUpdateCallback;
-
-	lensFlare.position = new THREE.Vector3(x,y,z);
-	lensFlare.size = size ? size : 16000 ;
-	return lensFlare;
-
-}
-
-function lensFlareUpdateCallback( object ) {
-
-	var f, fl = object.lensFlares.length;
-	var flare;
-	var vecX = -object.positionScreen.x * 2;
-	var vecY = -object.positionScreen.y * 2;
-
-
-	for( f = 0; f < fl; f++ ) {
-
-	   flare = object.lensFlares[ f ];
-
-	   flare.x = object.positionScreen.x + vecX * flare.distance;
-	   flare.y = object.positionScreen.y + vecY * flare.distance;
-
-	   flare.rotation = 0;
-
-	}
-
-	object.lensFlares[ 2 ].y += 0.025;
-	object.lensFlares[ 3 ].rotation = object.positionScreen.x * 0.5 + THREE.Math.degToRad( 45 );
-}
-
-function camTweener( newCamPosition, newTarget, time ) {
-
-	var update	= function() {
-
-		camera.position.x = camCurrentPosition.x;
-		camera.position.y = camCurrentPosition.y;
-		camera.position.z = camCurrentPosition.z;
-
-		camera.rotation.x = camCurrentRotation.x;
-		camera.rotation.y = camCurrentRotation.y;
-		camera.rotation.z = camCurrentRotation.z;
-
-		camTarget = camCurrentTarget;
-
-	}
-
-	var camCurrentPosition	= {
-		x: camera.position.x, 
-		y: camera.position.y, 
-		z: camera.position.z 
-	};
-
-	var camCurrentRotation	= {
-		x: camera.rotation.x, 
-		y: camera.rotation.y, 
-		z: camera.rotation.z 
-	};
-
-	var camCurrentTarget = camTarget;
-
-	tweenPosition = new TWEEN.Tween( camCurrentPosition )
-		.to( newCamPosition , time )
-		.delay(0)
-		.easing(TWEEN.Easing.Sinusoidal.InOut)
-		.onStart( function(){ 
-			controls.enabled = false; 
-			controls.noRotate = true;						
-			controls.noPan = true;
-			controls.noZoom = true;
-			controls.update();
-		} )
-		.onComplete( function(){ 
-			controls.enabled = true; 
-			controls.noRotate = false;						
-			controls.noPan = false;
-			controls.noZoom = false;
-			controls.update();
-
-		} )
-		.onUpdate( update )
-
-	tweenPOI = new TWEEN.Tween( camCurrentTarget )
-		.to( newTarget, time)
-		.delay(0)
-		.easing(TWEEN.Easing.Sinusoidal.InOut)
-		.onUpdate( update );
-
-	tweenPosition.start();
-	tweenPOI.start();
-}
-
 function onWindowResize() {
 
 
@@ -391,14 +286,11 @@ function onWindowResize() {
 	camera.aspect = $(window).width() / $(window).height();
 	camera.updateProjectionMatrix();
 
-	fovValue = 0.5 / Math.tan(camera.fov * Math.PI / 360) * window.innerHeight;
-	setCSSCamera(camera, fovValue);
+	updateLabels();
 
 	renderer.setSize( $(window).width(), $(window).height() );
 
-	updateMarkers();
-
-	composer.reset();
+	//composer.reset();
 
 }
 
@@ -407,12 +299,8 @@ function animate() {
 	requestAnimationFrame( animate );
 
     camera.updateProjectionMatrix();
-	fovValue = 0.5 / Math.tan(camera.fov * Math.PI / 360) * HEIGHT;
 
-	setCSSWorld();
-	setCSSCamera(camera, fovValue);
-
-	updateMarkers();
+	updateLabels();
 	controls.update();
 	stats.update();
 	TWEEN.update();
@@ -441,7 +329,6 @@ function animate() {
 function render() {
 
 	// composer.render( 0.01 );
-
 	renderer.clear();
 	renderer.render( scene, camera );
 

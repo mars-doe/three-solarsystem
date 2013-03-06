@@ -1,5 +1,5 @@
 
-var Planet = function( segW, segH, mat, axisMat ){
+var Planet = function( size, segW, segH, mat, axisMat ){
 
 	var 
 		planetTexture = new THREE.Texture(),
@@ -23,7 +23,7 @@ var Planet = function( segW, segH, mat, axisMat ){
 		lodDistance = 3000;
 
 		for (var i = 0; i < lodLevel; i++) {
-			geometry = new THREE.SphereGeometry( 1, segW / ( i + 1) , segH / ( i + 1 ) );
+			geometry = new THREE.SphereGeometry( size, segW / ( i + 1) , segH / ( i + 1 ) );
 			mesh = new THREE.Mesh( geometry, planetMaterial);
 			mesh.updateMatrix();
 			mesh.autoUpdateMatrix = false;
@@ -51,7 +51,7 @@ var Planet = function( segW, segH, mat, axisMat ){
 			aph = aphelion; 
 			eccen = eccentricity;
 
-			semiMin = semiMajor * Math.sqrt( 1 - eccentricity * eccentricity ); 
+			semiMin = semiMajor * Math.sqrt( 1 - eccentricity * eccentricity );
 
 			planetLod.position.x = semiMaj * Math.cos( axisRez * Math.PI * 2 ) * ssScale + ( ( aph - semiMaj ) * ssScale );
 			planetLod.position.z = semiMin * Math.sin( axisRez * Math.PI * 2 ) * ssScale;
@@ -85,7 +85,7 @@ var Planet = function( segW, segH, mat, axisMat ){
 
 				line.updateMatrix();
 				line.autoUpdateMatrix = false;
-				lineLod.addLevel( line, i * lodDistance);	
+				lineLod.addLevel( line, i * lodDistance );	
 			}
 
 			scene.add( lineLod );
@@ -107,3 +107,4 @@ var Planet = function( segW, segH, mat, axisMat ){
 	}
 };
 	
+

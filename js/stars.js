@@ -17,7 +17,7 @@ var Stars = function( systemSize, particleSize){
     material =   new THREE.ParticleBasicMaterial({
             color: 0xFFFFFF,
             size: particleSize,
-            map: THREE.ImageUtils.loadTexture( "images/particle.png" ),
+            map: THREE.ImageUtils.loadTexture( "images/star.png" ),
             blending: THREE.AdditiveBlending,
             transparent: true
             });
