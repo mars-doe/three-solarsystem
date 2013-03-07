@@ -35,7 +35,7 @@ function attachLegacyMarker(text, obj, size, visibleRange) {
     marker.size = size !== undefined ? size : 1.0;
 
     marker.visMin = visibleRange === undefined ? 0 : visibleRange.min;
-    marker.visMax = visibleRange === undefined ? 10000000 : visibleRange.max;
+    marker.visMax = visibleRange === undefined ? 1000 : visibleRange.max;
 
     marker.$ = $(marker);
 

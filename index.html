@@ -13,9 +13,9 @@
 
 		<script src="./js/three.min.js"></script>
 		<script src="./js/Detector.js"></script>
-
-		<script src="./js/libs/tween.min.js"></script>
 		<script src="./js/libs/stats.min.js"></script>
+		<script src="./js/libs/tween.min.js"></script>
+		<script src="./js/libs/dat.gui.min.js"></script>
 
 		<script src="./js/controls/OrbitControls.js"></script>	
 
@@ -33,16 +33,20 @@
 		<script src="./js/postprocessing/BloomPass.js"></script>
 		<script src="./js/postprocessing/FilmPass.js"></script>
 
-		<script src="./js/main.js"></script>
+		<script src="./js/shaderlist.js"></script>
+		<script src="./js/camtweener.js"></script>
+		<script src="./js/label.js"></script>
+		<script src="./js/sun.js"></script>
 		<script src="./js/planet.js"></script>
-		
+		<script src="./js/orbit.js"></script>
+		<script src="./js/solarsystem.js"></script>
+		<script src="./js/main.js"></script>
+
 		<script src="./js/stars.js"></script>
 		<script src="./js/trajectory.js"></script>
 
-		<script src="./js/label.js"></script>
 		<script src="./js/marker.js"></script>
 
-		<script src="./js/camtweener.js"></script>
 		<script src="./js/addlensflare.js"></script>
 
 
@@ -170,7 +174,7 @@
 				$( "#speedSlider" ).slider( {
 					animate: true,
 					range: "min",
-					value: 10,
+					value: 1,
 					min: 0,
 					max: 50,
 					step: 1,
@@ -230,33 +234,6 @@
 	            margin: 0 auto;
 	            overflow: hidden;
 	        }
-	        
-	        #css-container
-	        {
-	            position: absolute;
-	            overflow: hidden;
-	            z-index: 20;
-	            width: 100%;
-	            height: 100%;
-	            -webkit-transform-style: preserve-3d;
-	            -moz-transform-style: preserve-3d;
-	        }
-	        
-	        #css-world
-	        {
-	            width: 100%;
-	            height: 100%;
-	            -webkit-transform-style: preserve-3d;
-	            -moz-transform-style: preserve-3d;
-	        }
-	        
-	        #css-camera
-	        {
-	            width: 100%;
-	            height: 100%;
-	            -webkit-transform-style: preserve-3d;
-	            -moz-transform-style: preserve-3d;
-	        }
 
 	        #label_template{}
 	        
@@ -290,7 +267,7 @@
 				-ms-transition:text-shadow .25s;
 				-o-transition:text-shadow .25s;
 				transition:text-shadow .25s;
-				text-align:center;
+				text-align:left;
 				margin-left:auto;
 				margin-right:auto;
 				padding: 0px 0px;
@@ -313,16 +290,8 @@
 	</div>
 
     <div id="container">
-		<div id="info">MARS-DOE Solar System</div>
-		<button id="cam1">Camera Position 1</button>
-		<button id="cam2">Camera Position 2</button>
-		<button id="cam3">Camera Position 3</button>
-		<button id="cam4">Earth</button>
-		<button id="cam5">Mars</button>
-		<button id="traject">Trajectory</button>
-		<button id="removeTraject">Remove Trajectory</button>
-		<div id="speedSlider" class="center"></div>
-		
 		<div id="loadtext"></div>
+	</div>
+	<div id="info">MARS-DOE Solar System</div>
 	</body>
 </html>

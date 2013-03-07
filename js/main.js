@@ -6,48 +6,31 @@ var VIEW_ANGLE = 45,
 	NEAR = 1,
 	FAR = 100000;
 
-var stats, scene, camera, camTarget, camNextPosition, camNextRotation, camNextTarget, 
-	renderer, composer, controls, tween;
-
-var vertexShader, fragmentShader, uniforms;
-
-var planetName = [ "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune" ];
-var planetSize = [ 2439.7, 6051.8, 6371.00, 3389.5, 69911, 58232, 25362, 24622 ];
-var semiMajor = [ 57909227, 108209475, 149598262, 227943824, 778340821, 1426666422, 2870658186, 4498396441 ];
-var eccentricity = [ 0.20563593, 0.00677672, 0.01671123, 0.0933941,	0.04838624,	0.05386179,	0.04725744,	0.00859048 ];
-var aphelion = [ 69817445, 108942780, 152098233, 249232432, 816001807, 1503509229, 3006318143, 4537039826 ];
-var orbitTime = [ 88.0, 224.7, 365.2, 687, 4332, 10760, 30700, 60200 ];
-
-var axisRez = 50;
-var sunScale = .00001, planetScale = .001, ssScale = .000001;				
-var planetSegW = 15, planetSegH = 15;
-
-var solarSystem, 
-	planet = [], 
-	sun;	
+var stats, 
+	scene,
+	camera,
+	renderer, 
+	projector,
+	composer, 
+	controls,
+	tween,
+	camTarget;
 
 var trajectory;
 
-var timer = 1, timerMultiplier = 0;
+var timer, time;
 var clock = new THREE.Clock();
+
+var mouse = { x: 0, y: 0 }, 
+	INTERSECTED;
 
 var dae;
 var loader = new THREE.ColladaLoader();
-loader.options.convertUpAxis = true;
-loader.load( './models/galaxy.dae', function ( collada ) {
-
-	dae = collada.scene;
-	dae.scale.x = dae.scale.y = dae.scale.z = 10;
-	dae.updateMatrix();
-
-} );
 
 
 /********************************
 	PAGE LOADING
 ********************************/
-
-if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 function setLoadMessage( msg ){
 	$( '#loadtext' ).html(msg + "...");
@@ -55,39 +38,31 @@ function setLoadMessage( msg ){
 
 $(document).ready( function() {
 
+	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
 	$( '#loadtext' ).show();
 	setLoadMessage("Loading the Solar System");
 
-	$.ajax({
-		url: "./shaders/lavaShader.xml",
-		dataType: 'xml',
-		success: function ( xml ) {
-			//xmlDoc = $.parseXML( $xml );
+	loader.options.convertUpAxis = true;
+	loader.load( './models/galaxy.dae', function ( collada ) {
 
-			vertexShader = $(xml).find( "vertex" ).text();
-			fragmentShader = $(xml).find( "fragment" ).text();
-			setLoadMessage("shaders loaded");
-		},
-		error: function( text ) {
-			alert( "vertex not loaded" );
-		},
-		complete: function(){
+		dae = collada.scene;
+		dae.scale.x = dae.scale.y = dae.scale.z = 50000;
+		dae.updateMatrix();
 
-		}
+	} );
+
+	loadShaders( shaderList, function (e) {
+		shaderList = e;
+		postShadersLoaded();
 	});
-});
 
-$(window).load(function() {
-
-	CSSWorld = document.getElementById('css-world');
-	CSSCamera = document.getElementById('css-camera');
-
-	init();
-	animate();
-	
-	$("#loadtext").hide();
-});
-
+	var postShadersLoaded = function () {
+	        init();
+			animate();
+			$("#loadtext").hide();
+    };
+} );
 
 function init() {
 
@@ -97,11 +72,11 @@ function init() {
 	$container = $("#container");
 
 	scene = new THREE.Scene();
-	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
+	scene.fog = new THREE.FogExp2( 0x000000, 0.00005 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
-	camera.position.y = 200;
-	camera.position.z = 1000;
+	camera.position.y = 50;
+	camera.position.z = 500;
 
 	camTarget = new THREE.Vector3();
 	camTarget = scene.position;
@@ -123,120 +98,24 @@ function init() {
 	controls = new THREE.OrbitControls( camera );
 	controls.addEventListener( 'change', render );
 
-	/********************************
-		SUN & PLANETS
-	********************************/
-
-	solarSystem = new THREE.Object3D();
-
-	trajectory = new Trajectory ( 2 );
-
-	uniforms = {
-
-		time: { type: "f", value: 1.0 },
-		resolution: { type: "v2", value: new THREE.Vector2() },
-
-		fogDensity: { type: "f", value: 0 },
-		fogColor: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) },
-
-		texture1: { type: "t", value: THREE.ImageUtils.loadTexture( "./textures/lava/cloud.png" ) },
-		texture2: { type: "t", value: THREE.ImageUtils.loadTexture( "./textures/lava/lavatile.jpg" ) },
-
-		uvScale: { type: "v2", value: new THREE.Vector2( 0.5, 0.5 ) }
-
-	};
-
-	uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.RepeatWrapping;
-	uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.RepeatWrapping;
-
-	var material = new THREE.ShaderMaterial( {
-
-		uniforms: uniforms,
-		vertexShader: vertexShader,
-		fragmentShader: fragmentShader
-
-	} );
-
-	sun = new Planet( 1392684 * sunScale, planetSegW, planetSegH, material, material );
-	sun.mesh.name = "Sun";
-	sun.drawPlanet( solarSystem );
-	createLabel( "Sun", sun.mesh, 1, container );
-
-	var planetTexture = [
-		'./models/solarsystem/mercurymap.jpg',
-		'./models/solarsystem/venusmap.jpg',
-		'./models/solarsystem/earthmap.jpg',
-		'./models/solarsystem/marsmap.jpg',
-		'./models/solarsystem/jupitermap.jpg',
-		'./models/solarsystem/saturnmap.jpg',
-		'./models/solarsystem/uranusmap.jpg',
-		'./models/solarsystem/neptunemap.jpg',
-	];
-
-	for ( var i = 0; i < 8; i ++ ) {
-
-		var planetMaterial = new THREE.MeshLambertMaterial( { 
-				map: THREE.ImageUtils.loadTexture( planetTexture[i]), 
-				overdraw: true 
-		});
-
-		var axisMaterial = new THREE.LineBasicMaterial( { 
-			color: 0xF22E2E, 
-			opacity: .5, 
-			linewidth: .5 
-		});
-
-		var scale = planetSize[i] * planetScale;
-
-		planet.push( new Planet( scale, planetSegW, planetSegH, planetMaterial, axisMaterial ) );
-		planet[i].setOrbit( semiMajor[i], aphelion[i], eccentricity[i], ssScale );
-		planet[i].mesh.name = planetName[i];
-		planet[i].drawPlanet( solarSystem );
-		planet[i].drawOrbit( axisRez, solarSystem );
-		//createMarker( planetName[i], planet[i].mesh, 1, CSSCamera );
-		createLabel( planetName[i], planet[i].mesh, 1, container );
-
+	camOne = new camPosition( { x: 0, y: 50, z: 500 }, { x: 0, y: 0, z: 0 }, 1500 );
+	camTwo = new camPosition( { x: 0, y: 12000, z: 500 }, { x: 0, y: 0, z: 0 }, 5000 );
+	camThree = new camPosition( { x: -500, y: 250, z: -1000 }, { x: 0, y: 0, z: 0 }, 3000 );
+	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, { x: 0, y: 0, z: 0 }, 1500 );
+	camMars = new camPosition( { x: 75, y: 50, z: 300 }, { x: 0, y: 0, z: 0 }, 1500 );
+	
+	timer = function(){
+		this.count = 0;
+		this.multiplier = 1;
+		return this;
 	}
 
-	dae.scale.set( 50000, 50000, 50000 );
-	scene.add( dae );
-
-
-	// compass_gyro = new THREE.Gyroscope();
-	// compass_gyro.add( planet[2].mesh );
-	// sun.mesh.add( compass_gyro );
-
-	// var pts = [];//points array - the path profile points will be stored here
-	// var detail = .1;//half-circle detail - how many angle increments will be used to generate points
-	// var radius = 200;//radius for half_sphere
-
-	// for(var angle = 0.0; angle < Math.PI ; angle+= detail){ //loop from 0.0 radians to PI (0 - 180 degrees)
-	// 	pts.push(new THREE.Vector3(Math.cos(angle) * radius,0,Math.sin(angle) * radius));
-	// } //angle/radius to x,z
-	// geometry = new THREE.LatheGeometry( pts, 12 );//create the lathe with 12 radial repetitions of the profile
-
-	// latheMesh = new THREE.Mesh( geometry, planetMaterial);
-
-
-	/********************************
-		STARS
-	********************************/
-
-	starField = new Stars( 40000, 100 );
-	solarSystem.add( starField );
-
-	/********************************
-		LENS FLARE
-	********************************/
-
-	// var flare = addLensFlare( 0, 0, 0, 5, sunTexture );
-	// scene.add( flare );
+	time = new timer();
 
 	/********************************
 		RENDERER
 	********************************/
-
-	scene.add( solarSystem );
+	projector = new THREE.Projector();
 
 	renderer = Detector.webgl? new THREE.WebGLRenderer( { antialias: true } ): new THREE.CanvasRenderer();
 	renderer.setSize( WIDTH, HEIGHT );
@@ -244,13 +123,15 @@ function init() {
 	$container.append( renderer.domElement );
 	renderer.autoClear = false;
 
+	setupScene();
+	buildGUI();
 
 	/********************************
 		POST-PROCESSING
 	********************************/
 
 	// var renderModel = new THREE.RenderPass( scene, camera );
-	// var effectBloom = new THREE.BloomPass( 1.25 );
+	// // var effectBloom = new THREE.BloomPass( 1.25 );
 	// var effectFilm = new THREE.FilmPass( 0.35, 0.95, 2048, false );
 
 	// effectFilm.renderToScreen = true;
@@ -258,7 +139,7 @@ function init() {
 	// composer = new THREE.EffectComposer( renderer );
 
 	// composer.addPass( renderModel );
-	// composer.addPass( effectBloom );
+	// // composer.addPass( effectBloom );
 	// composer.addPass( effectFilm );
 
 	/********************************
@@ -270,7 +151,50 @@ function init() {
 	stats.domElement.style.top = '0px';
 	$container.append( stats.domElement );
 
+	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
 	window.addEventListener( 'resize', onWindowResize, false );
+
+}
+
+function buildGUI(){
+
+	var gui = new dat.GUI();
+	gui.add( time, 'multiplier', 0, 20).name( 'Orbit Speed' );
+
+	var labelFolder = gui.addFolder( 'Label Visibility' );
+	labelFolder.open();
+	for ( var i in labels ){
+		labelFolder.add( labels[i], 'visible' ).name( labels[i].name + ' label'  );
+	}
+
+	var camFolder = gui.addFolder( 'Camera Positions' );
+	camFolder.open();
+	camFolder.add( camOne, 'tween' ).name( 'Camera Home' );
+	camFolder.add( camTwo, 'tween' ).name( 'Camera Two' );
+	camFolder.add( camThree, 'tween' ).name( 'Camera Three' );
+	camFolder.add( camEarth, 'tween' ).name( 'Camera Earth' );
+	camFolder.add( camMars, 'tween' ).name( 'Camera Mars' );
+
+}
+
+
+function setupScene(){
+	trajectory = new Trajectory ( 2 );
+	solarSystem = makeSolarSystem();
+	starField = new Stars( 40000, 100 );
+	solarSystem.add( starField );
+
+	scene.add( dae );
+	scene.add( solarSystem );
+}
+
+function onDocumentMouseMove( event ) {
+
+	event.preventDefault();
+
+	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
 }
 
@@ -290,7 +214,7 @@ function onWindowResize() {
 
 	renderer.setSize( $(window).width(), $(window).height() );
 
-	//composer.reset();
+	// composer.reset();
 
 }
 
@@ -314,22 +238,54 @@ function animate() {
 		}
 	} );
 
-	var delta = 5 * clock.getDelta();
-	uniforms.time.value += 0.2 * delta;
+	var delta = clock.getDelta();
+	uniforms.time.value += 0.2 * ( delta * 5 );
+
 
 	render();
-
-	for ( var i = 0; i < planet.length; i ++ ) {
-		planet[i].orbit( -timer, orbitTime[i] );
+	for ( var i = 0; i < planets.length; i ++ ) {
+		planets[i].orbit( -time.count, orbitTime[i] );
 	}
 
-	timer = timer + 1 * timerMultiplier;
+	time.count = time.count + 1 * time.multiplier;
 }
 
 function render() {
+	
 
-	// composer.render( 0.01 );
+	// find intersections
+	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
+	projector.unprojectVector( vector, camera );
+
+	var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+
+	var intersects = raycaster.intersectObjects( solarSystem.children );
+
+	if ( intersects.length > 0 ) {
+
+		if ( INTERSECTED != intersects[ 0 ].object ) {
+
+			if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+
+			alert(intersects[0] + " instersected");
+			console.log( intersects[0] );
+			INTERSECTED = intersects[ 0 ].object;
+			INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+			INTERSECTED.material.emissive.setHex( 0xff0000 );
+
+		}
+
+	} else {
+
+		if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+
+		INTERSECTED = null;
+
+	}
+
+	
 	renderer.clear();
+	// composer.render( 0.01 );
 	renderer.render( scene, camera );
 
 }
