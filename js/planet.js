@@ -4,17 +4,20 @@ var createPlanet = function( size, material ){
 		LODLevel = 3,
 		LODDistance = 3000;
 
-	for ( var i = 0; i < LODLevel; i++ ) {
+	// for ( var i = 0; i < LODLevel; i++ ) {
 
-		var geometry = new THREE.SphereGeometry( size, 15 / ( i + 1) , 15 / ( i + 1 ) );
-		var planet = new THREE.Mesh( geometry, material );
+	// 	var geometry = new THREE.SphereGeometry( size, 15 / ( i + 1) , 15 / ( i + 1 ) );
+	// 	var planet = new THREE.Mesh( geometry, material );
 
-		planet.updateMatrix();
-		planet.autoUpdateMatrix = false;
-		LOD.addLevel( planet, i * LODDistance );	
-		LOD.updateMatrix();
-		LOD.updateMatrix();
-	};
+	// 	planet.updateMatrix();
+	// 	planet.autoUpdateMatrix = false;
+	// 	LOD.addLevel( planet, i * LODDistance );	
+	// 	LOD.updateMatrix();
+	// 	LOD.updateMatrix();
+	// };
+
+	sphereGeo = new THREE.SphereGeometry(size, 15, 15 );
+	LOD = new THREE.Mesh ( sphereGeo, material );
 
 	LOD.setOrbit = function( semiMajor, semiMinor, aphelion, eccentricity, orbitTime, ssScale ){
 		this.semiMajor = semiMajor;

@@ -98,20 +98,6 @@ function init() {
 	controls = new THREE.OrbitControls( camera );
 	controls.addEventListener( 'change', render );
 
-	camOne = new camPosition( { x: 0, y: 50, z: 500 }, { x: 0, y: 0, z: 0 }, 1500 );
-	camTwo = new camPosition( { x: 0, y: 12000, z: 500 }, { x: 0, y: 0, z: 0 }, 5000 );
-	camThree = new camPosition( { x: -500, y: 250, z: -1000 }, { x: 0, y: 0, z: 0 }, 3000 );
-	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, { x: 0, y: 0, z: 0 }, 1500 );
-	camMars = new camPosition( { x: 75, y: 50, z: 300 }, { x: 0, y: 0, z: 0 }, 1500 );
-	
-	timer = function(){
-		this.count = 0;
-		this.multiplier = 1;
-		return this;
-	}
-
-	time = new timer();
-
 	/********************************
 		RENDERER
 	********************************/
@@ -124,6 +110,21 @@ function init() {
 	renderer.autoClear = false;
 
 	setupScene();
+	
+	camOne = new camPosition( { x: 0, y: 50, z: 500 }, { x: 0, y: 0, z: 0 }, 1500 );
+	camTwo = new camPosition( { x: 0, y: 12000, z: 500 }, { x: 0, y: 0, z: 0 }, 5000 );
+	camThree = new camPosition( { x: -500, y: 250, z: -1000 }, { x: 0, y: 0, z: 0 }, 3000 );
+	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, planets[2].position.clone(), 1500 );
+	camMars = new camPosition( { x: 75, y: 50, z: 300 }, planets[3].position.clone(), 1500 );
+	
+	timer = function(){
+		this.count = 0;
+		this.multiplier = 1;
+		return this;
+	}
+
+	time = new timer();
+
 	buildGUI();
 
 	/********************************
@@ -264,22 +265,18 @@ function render() {
 	if ( intersects.length > 0 ) {
 
 		if ( INTERSECTED != intersects[ 0 ].object ) {
-
-			if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-
-			alert(intersects[0] + " instersected");
-			console.log( intersects[0] );
+			
 			INTERSECTED = intersects[ 0 ].object;
-			INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-			INTERSECTED.material.emissive.setHex( 0xff0000 );
+			console.log( INTERSECTED );
+			$( '#loadtext' ).fadeIn();
+			setLoadMessage('You tickled ' + INTERSECTED.name);
 
 		}
 
 	} else {
 
-		if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
-
 		INTERSECTED = null;
+		$( '#loadtext' ).fadeOut();
 
 	}
 

@@ -55,13 +55,16 @@ function camTweener( newCamPosition, newTarget, time ) {
 			controls.update();
 
 		} )
-		.onUpdate( update )
+		.onUpdate( update );
 
 	tweenPOI = new TWEEN.Tween( camCurrentTarget )
 		.to( newTarget, time)
 		.delay(0)
 		.easing(TWEEN.Easing.Sinusoidal.InOut)
-		.onUpdate( update );
+		.onUpdate( update )
+		.onComplete( function(){
+			camTarget = newTarget;
+		});
 
 	tweenPosition.start();
 	tweenPOI.start();
