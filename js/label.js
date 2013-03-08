@@ -103,6 +103,4 @@ function createLabel( glObject, size, element ) {
 	};
 
 	labels.push(label);
-
-	return label;
 }
