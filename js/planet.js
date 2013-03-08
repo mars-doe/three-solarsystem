@@ -1,3 +1,5 @@
+
+
 var createPlanet = function( size, material ){
 
 	var LOD = new THREE.LOD(),
@@ -32,6 +34,7 @@ var createPlanet = function( size, material ){
 	LOD.orbit = function( time, days ){
 
 		var orbitSpeed = time / days;
+		this.rotation.y = -time * days/1000; 
 		this.position.x = ssScale * ( this.semiMajor * Math.cos( axisRez * Math.PI * 2 + orbitSpeed ) + ( this.aphelion - this.semiMajor ) );
 		this.position.z = ssScale * ( this.semiMinor * Math.sin( axisRez * Math.PI * 2 + orbitSpeed ) );
 	};

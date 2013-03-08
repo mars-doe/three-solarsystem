@@ -8,14 +8,14 @@ var eccentricity = [ 0.20563593, 0.00677672, 0.01671123, 0.0933941,	0.04838624,	
 var aphelion = [ 69817445, 108942780, 152098233, 249232432, 816001807, 1503509229, 3006318143, 4537039826 ];
 var orbitTime = [ 88.0, 224.7, 365.2, 687, 4332, 10760, 30700, 60200 ];
 var planetTexture = [
-		'./models/solarsystem/mercurymap.jpg',
-		'./models/solarsystem/venusmap.jpg',
-		'./models/solarsystem/earthmap.jpg',
-		'./models/solarsystem/marsmap.jpg',
-		'./models/solarsystem/jupitermap.jpg',
-		'./models/solarsystem/saturnmap.jpg',
-		'./models/solarsystem/uranusmap.jpg',
-		'./models/solarsystem/neptunemap.jpg',
+		'./images/solarsystem/mercurymap.jpg',
+		'./images/solarsystem/venusmap.jpg',
+		'./images/solarsystem/earthmap.jpg',
+		'./images/solarsystem/marsmap.jpg',
+		'./images/solarsystem/jupitermap.jpg',
+		'./images/solarsystem/saturnmap.jpg',
+		'./images/solarsystem/uranusmap.jpg',
+		'./images/solarsystem/neptunemap.jpg',
 	];
 
 var axisRez = 50;
@@ -30,6 +30,15 @@ function findSemiMinor(){
 	}
 };
 
+function planetsOrbit( time ){
+	if(time != 0){
+		for (var i in planets) {
+	        var planet = planets[i];
+			planets[i].orbit( time, orbitTime[i] );
+		}
+	}
+}
+
 function makeSolarSystem(){
 
 	findSemiMinor();
@@ -37,9 +46,10 @@ function makeSolarSystem(){
 	var solarSystem = new THREE.Object3D();
 
 	sun = createSun( sunScale );
+	sun.name = "The Sun";
 	solarSystem.add( sun );
 
-	createLabel( "Sun", sun, 1, container );
+	createLabel( sun, 1, container );
 
 	// CREATE EACH PLANET
 	for ( var i = 0; i < 8; i ++ ) {
@@ -50,12 +60,14 @@ function makeSolarSystem(){
 		});
 
 		var axisMaterial = new THREE.LineBasicMaterial( { 
-			color: 0xF22E2E, 
+			color: 0x202020, 
 			opacity: .5, 
 			linewidth: .5 
 		});
-
-		planets.push( createPlanet( planetSize[i] * planetScale , planetMaterial ) );
+		
+		var scale = planetSize[i] * planetScale;
+		planets.push( createPlanet( 1 , planetMaterial ) );
+		planets[i].scale.set(scale, scale, scale );
 		planets[i].setOrbit( semiMajor[i], semiMinor[i], aphelion[i], eccentricity[i], orbitTime[i], ssScale );
 		planets[i].name = planetName[i];
 
@@ -65,7 +77,7 @@ function makeSolarSystem(){
 		solarSystem.add( planets[i] );
 		solarSystem.add( orbits[i] );
 
-		createLabel( planetName[i], planets[i], 1, container );
+		createLabel( planets[i], 1, container );
 
 	};
 

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>rybotron - three.js sandbox</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #f0f0f0;
+				margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+
+		<script src="./js/three.min.js"></script>
+		<script src="./js/planet.js"></script>
+		<script src="js/libs/stats.min.js"></script>
+		<script src="./js/controls/OrbitControls.js"></script>
+
+		<script>
+
+	
+			var container, stats;
+			var camera, scene, projector, renderer, controls;
+			var clock = new THREE.Clock();
+
+			var mouse = { x: 0, y: 0 }, INTERSECTED;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				var info = document.createElement( 'div' );
+				info.style.position = 'absolute';
+				info.style.top = '10px';
+				info.style.width = '100%';
+				info.style.textAlign = 'center';
+				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> webgl - interactive cubes';
+				container.appendChild( info );
+
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.set( 0, 0, 200 );
+
+				controls = new THREE.OrbitControls( camera );
+				controls.addEventListener( 'change', render );
+
+				scene = new THREE.Scene();
+
+				var light = new THREE.DirectionalLight( 0xffffff, 2 );
+				light.position.set( 1, 1, 1 ).normalize();
+				scene.add( light );
+
+				var geometry = new THREE.CubeGeometry( 20, 20, 20 );
+
+				cube = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
+				scene.add( cube );
+
+				var sphereGeo = new THREE.SphereGeometry(15, 10, 10 );
+				sphere = new THREE.Mesh ( sphereGeo, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
+				sphere.position.set(-100,0,0);
+
+				plane = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.MeshBasicMaterial({
+		            color: 0x0000ff
+		        }));
+
+				gyro = new THREE.Gyroscope();
+				gyro.add( plane );
+				gyro.position.set( -100, 0, 0);
+				cube.add( gyro );
+
+
+
+				//delta = toWorld(anchorPoint) - thisComp.activeCamera.toWorld([0,0,0]);
+				//radiansToDegrees(Math.atan2(delta[0],delta[2]))
+
+				scene.add(sphere);
+
+
+				projector = new THREE.Projector();
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.sortObjects = false;
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container.appendChild(renderer.domElement);
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				container.appendChild( stats.domElement );
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDocumentMouseMove( event ) {
+
+				event.preventDefault();
+
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				
+				var delta = clock.getDelta();
+				var time = clock.getElapsedTime();
+
+				controls.update( delta );
+				render();
+				stats.update();
+
+				//cube.rotation.y = time;
+
+				var vector = new THREE.Vector3();
+				vector.getPositionFromMatrix( gyro.matrixWorld );
+				vector.sub( camera.position );
+				gyro.rotation.y = Math.atan2( vector.x, vector.z) + 3;
+
+
+			}
+
+			function render() {
+
+				camera.lookAt( scene.position );
+
+				// find intersections
+
+				var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
+				projector.unprojectVector( vector, camera );
+
+				var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+
+				var intersects = raycaster.intersectObjects( scene.children );
+
+				if ( intersects.length > 0 ) {
+
+					if ( INTERSECTED != intersects[ 0 ].object ) {
+						INTERSECTED = intersects[ 0 ].object;
+						console.log("yes!");						
+					}
+
+				} else {
+
+					if ( INTERSECTED ) INTERSECTED.material.emissive.setHex( INTERSECTED.currentHex );
+					INTERSECTED = null;
+
+				}
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>

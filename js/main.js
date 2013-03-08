@@ -18,7 +18,7 @@ var stats,
 
 var trajectory;
 
-var timer, time;
+var timer, time, t;
 var clock = new THREE.Clock();
 
 var mouse = { x: 0, y: 0 }, 
@@ -59,7 +59,7 @@ $(document).ready( function() {
 
 	var postShadersLoaded = function () {
 	        init();
-			animate();
+	        animate();
 			$("#loadtext").hide();
     };
 } );
@@ -72,7 +72,7 @@ function init() {
 	$container = $("#container");
 
 	scene = new THREE.Scene();
-	scene.fog = new THREE.FogExp2( 0x000000, 0.00005 );
+	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
 	camera.position.y = 50;
@@ -95,9 +95,6 @@ function init() {
 
 	scene.add(pointLight);
 
-	controls = new THREE.OrbitControls( camera );
-	controls.addEventListener( 'change', render );
-
 	/********************************
 		RENDERER
 	********************************/
@@ -109,21 +106,24 @@ function init() {
 	$container.append( renderer.domElement );
 	renderer.autoClear = false;
 
+	controls = new THREE.OrbitControls( camera );
+	controls.addEventListener( 'change', render );
+
 	setupScene();
 	
 	camOne = new camPosition( { x: 0, y: 50, z: 500 }, { x: 0, y: 0, z: 0 }, 1500 );
 	camTwo = new camPosition( { x: 0, y: 12000, z: 500 }, { x: 0, y: 0, z: 0 }, 5000 );
 	camThree = new camPosition( { x: -500, y: 250, z: -1000 }, { x: 0, y: 0, z: 0 }, 3000 );
-	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, planets[2].position.clone(), 1500 );
-	camMars = new camPosition( { x: 75, y: 50, z: 300 }, planets[3].position.clone(), 1500 );
+	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, planets[2].position, 1500 );
+	camMars = new camPosition( { x: 75, y: 50, z: 300 }, planets[3].position, 1500 );
 	
 	timer = function(){
-		this.count = 0;
-		this.multiplier = 1;
+		this.count = 1;
+		this.multiplier = .25;
 		return this;
 	}
 
-	time = new timer();
+	t = new timer();
 
 	buildGUI();
 
@@ -161,13 +161,13 @@ function init() {
 function buildGUI(){
 
 	var gui = new dat.GUI();
-	gui.add( time, 'multiplier', 0, 20).name( 'Orbit Speed' );
+	gui.add( t, 'multiplier', 0, 5).name( 'Orbit Speed' );
 
-	var labelFolder = gui.addFolder( 'Label Visibility' );
-	labelFolder.open();
-	for ( var i in labels ){
-		labelFolder.add( labels[i], 'visible' ).name( labels[i].name + ' label'  );
-	}
+	// var labelFolder = gui.addFolder( 'Label Visibility' );
+	// labelFolder.open();
+	// for ( var i in labels ){
+	// 	labelFolder.add( labels[i], 'visible' ).name( labels[i].name + ' label'  );
+	// }
 
 	var camFolder = gui.addFolder( 'Camera Positions' );
 	camFolder.open();
@@ -186,8 +186,14 @@ function setupScene(){
 	starField = new Stars( 40000, 100 );
 	solarSystem.add( starField );
 
+	lensFlares = new THREE.Object3D();
+	var override = THREE.ImageUtils.loadTexture( "./images/lensflare/hexangle.png" );
+	var sunFlare = addLensFlare( 0, 0, 10, 5, override );
+	lensFlares.add( sunFlare );
+
 	scene.add( dae );
 	scene.add( solarSystem );
+	scene.add( lensFlares );
 }
 
 function onDocumentMouseMove( event ) {
@@ -215,7 +221,7 @@ function onWindowResize() {
 
 	renderer.setSize( $(window).width(), $(window).height() );
 
-	// composer.reset();
+	//composer.reset();
 
 }
 
@@ -224,13 +230,42 @@ function animate() {
 	requestAnimationFrame( animate );
 
     camera.updateProjectionMatrix();
+	camera.lookAt( camTarget );
 
-	updateLabels();
+    updateLabels();
 	controls.update();
 	stats.update();
 	TWEEN.update();
+	planetsOrbit(-t.count);
 
-	camera.lookAt( camTarget );
+	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
+	projector.unprojectVector( vector, camera );
+
+	var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+
+	var intersects = raycaster.intersectObjects( solarSystem.children );
+
+	if ( intersects.length > 0 ) {
+		if ( INTERSECTED != intersects[ 0 ].object ) {
+			INTERSECTED = intersects[ 0 ].object;
+			for ( var i in labels ){
+				if( labels[i].name == INTERSECTED.name ) {
+					labels[i].show();
+					break;
+				}
+			}
+			setLoadMessage('Awesome information about ' + INTERSECTED.name + ' could go here!');
+			$( '#loadtext' ).fadeIn('fast');
+
+		}
+
+	} else {
+		//INTERSECTED.label.hide();
+		showLabels( false );
+		INTERSECTED = null;
+		$( '#loadtext' ).fadeOut('fast');
+
+	}	
 
 	scene.updateMatrixWorld();
 	scene.traverse( function ( object ) {
@@ -240,47 +275,17 @@ function animate() {
 	} );
 
 	var delta = clock.getDelta();
-	uniforms.time.value += 0.2 * ( delta * 5 );
+	var time = clock.getElapsedTime();
 
+	uniforms.time.value = time + delta;
+	t.count = t.count + 1 * t.multiplier;
 
+	camera.lookAt( camTarget );
 	render();
-	for ( var i = 0; i < planets.length; i ++ ) {
-		planets[i].orbit( -time.count, orbitTime[i] );
-	}
-
-	time.count = time.count + 1 * time.multiplier;
 }
 
 function render() {
-	
 
-	// find intersections
-	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
-	projector.unprojectVector( vector, camera );
-
-	var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-
-	var intersects = raycaster.intersectObjects( solarSystem.children );
-
-	if ( intersects.length > 0 ) {
-
-		if ( INTERSECTED != intersects[ 0 ].object ) {
-			
-			INTERSECTED = intersects[ 0 ].object;
-			console.log( INTERSECTED );
-			$( '#loadtext' ).fadeIn();
-			setLoadMessage('You tickled ' + INTERSECTED.name);
-
-		}
-
-	} else {
-
-		INTERSECTED = null;
-		$( '#loadtext' ).fadeOut();
-
-	}
-
-	
 	renderer.clear();
 	// composer.render( 0.01 );
 	renderer.render( scene, camera );

@@ -7,18 +7,18 @@ function updateLabels(){
     }
 } 
 
-function showLables( hide ){
+function showLabels( show ){
 	for (var i in labels) {
         var label = labels[i];
-		if( hide ) label.hide();
-		else label.show();
+		if( show ) labels[i].show();
+		else labels[i].hide();
 	}
 }
 
 
 function screenXY( vec3 ) {
     var projector = new THREE.Projector();
-    var vector = projector.projectVector( vec3.clone(), camera );
+    var vector = projector.projectVector( vec3, camera );
     var result = new Object();
 
     result.x = Math.round(vector.x * (window.innerWidth / 2)) + window.innerWidth / 2;
@@ -26,7 +26,7 @@ function screenXY( vec3 ) {
     return result;
 }
 
-function createLabel( text, glObject, size, element ) {
+function createLabel( glObject, size, element ) {
 	var template = document.getElementById('label_template');
 	var label = template.cloneNode(true);
 
@@ -35,21 +35,23 @@ function createLabel( text, glObject, size, element ) {
 
 	label.object = glObject;
 
-	// label.gyro = new THREE.Gyroscope();
-	// var plane = new THREE.PlaneGeometry( 2, 2 );
-	// label.gyroGeo = new THREE.Mesh( plane, new THREE.MeshLambertMaterial( { color: 0xCC0000, opacity: 1 } ) );
-	// label.gyro.add( label.gyroGeo );
-	// label.object.add( label.gyro );
+	//line instead of plane
+	label.gyro = new THREE.Gyroscope();
+	label.gyroGeo = new THREE.Mesh( new THREE.PlaneGeometry( 0, 0 ), new THREE.MeshLambertMaterial( { color: 0xCC0000, opacity: 1 } ) );
+	label.gyroGeo.position.set(1,0,0);
+	label.gyro.add( label.gyroGeo );
 
-	label.name = text;
+	label.object.add( label.gyro );
+
+	label.name = label.object.name;
 	label.nameLayer = label.children[0];
-	label.nameLayer.innerHTML = text;
+	label.nameLayer.innerHTML = label.name;
 
 	label.labelWidth = label.$.outerWidth();
 
+	label.visible = false;
     label.visMin = 0;
-    label.visMax = 5000;
-    label.visible = false;
+    label.visMax = 10000;
 
 	element.appendChild( label );
 
@@ -60,26 +62,45 @@ function createLabel( text, glObject, size, element ) {
 	};
 
 	label.hide = function(){
-		label.visible = false;
+		this.visible = false;
+		this.$.hide();
 	}
 
 	label.show = function(){
-		label.visible = true;
+		this.visible = true;
+		this.$.show();
+	}
+
+	label.updateGyro = function(){
+		var vector = new THREE.Vector3();
+		vector.getPositionFromMatrix( this.gyro.matrixWorld );
+		vector.sub( camera.position );
+		this.gyro.rotation.y = Math.atan2( vector.x, vector.z) + 3;	
 	}
 
 	label.update = function () {
 
-		var screenPos = screenXY( this.object.position );
+		this.updateGyro();
+
+		var vector = new THREE.Vector3();
+		var screenPos = screenXY( vector.getPositionFromMatrix( this.gyroGeo.matrixWorld ) );
+
 		var frustum = new THREE.Frustum();
 		frustum.setFromMatrix( new THREE.Matrix4().multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse ) );
+
 		var inFrustum = frustum.containsPoint( this.object.position );
-
-        var isParentVisible = this.object.visible;
-
-        if ( label.visible && isParentVisible && inFrustum) this.setPosition( screenPos.x, screenPos.y );
-        if ( label.visible && inFrustum && isParentVisible ) this.style.display = 'inline-block';
-        else this.style.display = 'none';
+		var isParentVisible = this.object.visible;
+		var distanceTo = this.object.position.clone().distanceTo( camera.position );
+		var inCamRange = (distanceTo > this.visMin && distanceTo < this.visMax);
+        
+        if ( this.visible && inCamRange && inFrustum && isParentVisible ) { 
+        	this.setPosition( screenPos.x, screenPos.y );
+        	this.show();
+        }
+        else this.hide();
 	};
 
 	labels.push(label);
+
+	return label;
 }
