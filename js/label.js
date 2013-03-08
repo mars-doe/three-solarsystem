@@ -64,11 +64,13 @@ function createLabel( glObject, size, element ) {
 	label.hide = function(){
 		this.visible = false;
 		this.$.hide();
+		//this.$.fadeTo(0.1, 0);
 	}
 
 	label.show = function(){
 		this.visible = true;
 		this.$.show();
+		//this.$.fadeTo(0.1, 1);
 	}
 
 	label.updateGyro = function(){
@@ -93,8 +95,8 @@ function createLabel( glObject, size, element ) {
 		var distanceTo = this.object.position.clone().distanceTo( camera.position );
 		var inCamRange = (distanceTo > this.visMin && distanceTo < this.visMax);
         
+        this.setPosition( screenPos.x, screenPos.y );
         if ( this.visible && inCamRange && inFrustum && isParentVisible ) { 
-        	this.setPosition( screenPos.x, screenPos.y );
         	this.show();
         }
         else this.hide();
