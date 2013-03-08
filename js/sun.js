@@ -14,7 +14,7 @@ var uniforms = {
 };
 
 
-var createSun = function( sunScale ){
+var createSun = function(){
 
 	uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.MirroredRepeatWrapping;
 	uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.MirroredRepeatWrapping;
@@ -32,10 +32,8 @@ var createSun = function( sunScale ){
 	// 	overdraw: true 
 	// });
 	
-	var scale = 1392684 * sunScale;
 	var sun = createPlanet( 1 , sunMaterial );
-	sun.scale.set( scale, scale, scale );
-	sun.name = "Sun";
+	sun.name = "The Sun";
 
 	/********************************
 	LENS FLARE

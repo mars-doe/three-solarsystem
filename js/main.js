@@ -21,7 +21,7 @@ var trajectory;
 var timer, time, t;
 var clock = new THREE.Clock();
 
-var mouse = { x: 0, y: 0 }, 
+var mouse = { x: -1000, y: 0 }, 
 	INTERSECTED;
 
 var dae;
@@ -75,7 +75,7 @@ function init() {
 	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
-	camera.position.y = 50;
+	camera.position.y = 200;
 	camera.position.z = 500;
 
 	camTarget = new THREE.Vector3();
@@ -83,11 +83,11 @@ function init() {
 
 	fovValue = 0.5 / Math.tan(camera.fov * Math.PI / 360) * HEIGHT;
 	
-	var ambientLight = new THREE.AmbientLight();
+	var ambientLight = new THREE.AmbientLight( 0x404040 );
 	ambientLight.color.setRGB( .15, .15, .15 );
 	scene.add(ambientLight);
 
-	var pointLight = new THREE.PointLight(0xFFFFFF);
+	var pointLight = new THREE.PointLight(0xFFFFFF, 1.3);
 
 	pointLight.position.x = 0;
 	pointLight.position.y = 0;
@@ -168,6 +168,9 @@ function buildGUI(){
 	// for ( var i in labels ){
 	// 	labelFolder.add( labels[i], 'visible' ).name( labels[i].name + ' label'  );
 	// }
+	gui.add(ssScale, 's', .000001, .00001).name('SS Scale');
+	gui.add(ssScale, 'sunScale', .00001, .0001).name('Sun Scale');
+	gui.add(ssScale, 'planetScale', .001, .01).name('Planet Scale');
 
 	var camFolder = gui.addFolder( 'Camera Positions' );
 	camFolder.open();
@@ -181,6 +184,7 @@ function buildGUI(){
 
 
 function setupScene(){
+
 	trajectory = new Trajectory ( 2 );
 	solarSystem = makeSolarSystem();
 	starField = new Stars( 40000, 100 );
@@ -236,6 +240,7 @@ function animate() {
 	controls.update();
 	stats.update();
 	TWEEN.update();
+	setSolarSystemScale();
 	planetsOrbit(-t.count);
 
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
@@ -248,6 +253,7 @@ function animate() {
 	if ( intersects.length > 0 ) {
 		if ( INTERSECTED != intersects[ 0 ].object ) {
 			INTERSECTED = intersects[ 0 ].object;
+			console.log(INTERSECTED);
 			for ( var i in labels ){
 				if( labels[i].name == INTERSECTED.name ) {
 					labels[i].show();
@@ -256,11 +262,8 @@ function animate() {
 			}
 			setLoadMessage('Awesome information about ' + INTERSECTED.name + ' could go here!');
 			$( '#loadtext' ).fadeIn('fast');
-
 		}
-
 	} else {
-		//INTERSECTED.label.hide();
 		showLabels( false );
 		INTERSECTED = null;
 		$( '#loadtext' ).fadeOut('fast');

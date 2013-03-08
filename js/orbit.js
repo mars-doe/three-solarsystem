@@ -11,8 +11,8 @@ var createOrbit = function( aphelion, semiMajor, semiMinor, axisRez, material ){
 		var spline = [];
 		
 		for( var i = 0; i < axisRez; i++ ) {
-			x = ssScale * ( semiMajor * Math.cos( i / axisRez * Math.PI * 2 ) + ( aphelion - semiMajor ) );
-			z = ssScale * ( semiMinor * Math.sin( i / axisRez * Math.PI * 2 ) );
+			x = ( semiMajor * Math.cos( i / axisRez * Math.PI * 2 ) + ( aphelion - semiMajor ) );
+			z = ( semiMinor * Math.sin( i / axisRez * Math.PI * 2 ) );
 			axisPoints[i] = new THREE.Vector3( x, 0, z );
 		}
 			

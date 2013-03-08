@@ -19,9 +19,15 @@ var planetTexture = [
 	];
 
 var axisRez = 50;
-var sunScale = .00001, planetScale = .001, ssScale = .000001;				
 
-var sun, planets = [], orbits = [];
+var solarSystemScale = function(){
+	this.s = .000001;	
+	this.sunScale = .00001;
+	this.planetScale = .001;
+	return this;
+} 				
+
+var sun, planets = [], orbits = [], ssScale;
 
 
 function findSemiMinor(){
@@ -34,19 +40,30 @@ function planetsOrbit( time ){
 	if(time != 0){
 		for (var i in planets) {
 	        var planet = planets[i];
-			planets[i].orbit( time, orbitTime[i] );
+			planets[i].orbit( time, orbitTime[i], ssScale.s );
 		}
 	}
+}
+
+function setSolarSystemScale(){
+	var sunS = 1392684 * ssScale.sunScale;
+	sun.scale.set( sunS, sunS, sunS );
+
+	for (var i in planets) {
+		var planetS = planetSize[i] * ssScale.planetScale;
+		planets[i].scale.set( planetS, planetS, planetS );
+		orbits[i].scale.set( ssScale.s, ssScale.s, ssScale.s );
+    }
 }
 
 function makeSolarSystem(){
 
 	findSemiMinor();
+	ssScale = new solarSystemScale( { s: .000001, sunScale: .0001, planetScale: .001 } );
 
 	var solarSystem = new THREE.Object3D();
 
-	sun = createSun( sunScale );
-	sun.name = "The Sun";
+	sun = createSun();
 	solarSystem.add( sun );
 
 	createLabel( sun, 1, container );
@@ -65,10 +82,9 @@ function makeSolarSystem(){
 			linewidth: .5 
 		});
 		
-		var scale = planetSize[i] * planetScale;
+
 		planets.push( createPlanet( 1 , planetMaterial ) );
-		planets[i].scale.set(scale, scale, scale );
-		planets[i].setOrbit( semiMajor[i], semiMinor[i], aphelion[i], eccentricity[i], orbitTime[i], ssScale );
+		planets[i].setOrbit( semiMajor[i], semiMinor[i], aphelion[i], eccentricity[i], orbitTime[i] );
 		planets[i].name = planetName[i];
 
 		orbits.push( createOrbit( aphelion[i], semiMajor[i], semiMinor[i], axisRez, axisMaterial ) );
@@ -80,6 +96,8 @@ function makeSolarSystem(){
 		createLabel( planets[i], 1, container );
 
 	};
+
+	setSolarSystemScale();
 
 	return solarSystem;
 };
