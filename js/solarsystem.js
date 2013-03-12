@@ -1,24 +1,10 @@
-
-
-var planetName = [ "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune" ];
-var planetSize = [ 2439.7, 6051.8, 6371.00, 3389.5, 69911, 58232, 25362, 24622 ];
-var semiMinor = [];
-var semiMajor = [ 57909227, 108209475, 149598262, 227943824, 778340821, 1426666422, 2870658186, 4498396441 ];
-var eccentricity = [ 0.20563593, 0.00677672, 0.01671123, 0.0933941,	0.04838624,	0.05386179,	0.04725744,	0.00859048 ];
-var aphelion = [ 69817445, 108942780, 152098233, 249232432, 816001807, 1503509229, 3006318143, 4537039826 ];
-var orbitTime = [ 88.0, 224.7, 365.2, 687, 4332, 10760, 30700, 60200 ];
-var planetTexture = [
-		'./images/solarsystem/mercurymap.jpg',
-		'./images/solarsystem/venusmap.jpg',
-		'./images/solarsystem/earthmap.jpg',
-		'./images/solarsystem/marsmap.jpg',
-		'./images/solarsystem/jupitermap.jpg',
-		'./images/solarsystem/saturnmap.jpg',
-		'./images/solarsystem/uranusmap.jpg',
-		'./images/solarsystem/neptunemap.jpg',
-	];
-
-var axisRez = 50;
+var ss = [], 
+	sun, 
+	planets = [], 
+	orbits = [], 
+	ssScale,
+	scaling = true,
+	prevTime = 0;
 
 var solarSystemScale = function(){
 	this.s = .000001;	
@@ -27,33 +13,36 @@ var solarSystemScale = function(){
 	return this;
 } 				
 
-var sun, planets = [], orbits = [], ssScale;
-
-
 function findSemiMinor(){
-	for( var i = 0; i < semiMajor.length; i++ ){
-		semiMinor.push( semiMajor[i] * Math.sqrt( 1 - eccentricity[i] * eccentricity[i] ) );
-	}
-};
-
-function planetsOrbit( time ){
-	if(time != 0){
-		for (var i in planets) {
-	        var planet = planets[i];
-			planets[i].orbit( time, orbitTime[i], ssScale.s );
-		}
+	for( var i = 1; i < ephemeris.length; i++ ){
+		ephemeris[i].semiMinor = ephemeris[i].A * Math.sqrt( 1 - ephemeris[i].EC * ephemeris[i].EC );
 	}
 }
 
-function setSolarSystemScale(){
-	var sunS = 1392684 * ssScale.sunScale;
-	sun.scale.set( sunS, sunS, sunS );
+function planetsOrbit( time ){
+	if( time > prevTime ){
+		for ( var i = 1; i < ss.length; i ++ ) {
+	        var planet = ss[i];
+			ss[i].orbiting( time, ssScale.s );
+		}
+		prevTime = time;
+	}	
+}
 
-	for (var i in planets) {
-		var planetS = planetSize[i] * ssScale.planetScale;
-		planets[i].scale.set( planetS, planetS, planetS );
-		orbits[i].scale.set( ssScale.s, ssScale.s, ssScale.s );
-    }
+function setSolarSystemScale(){
+	if ( scaling ){
+		var sunS = 1392684 * ssScale.sunScale;
+		ss[0].scale.set( sunS, sunS, sunS );
+
+		for ( var i = 1; i < ss.length; i ++ ) {
+			var planetS = ephemeris[i].size * ssScale.planetScale;
+			ss[i].scale.set( planetS, planetS, planetS );
+			ss[i].orbit.scale.set( ssScale.s, ssScale.s, ssScale.s );
+	    }
+
+	scaling = false;
+
+	}
 }
 
 function makeSolarSystem(){
@@ -61,18 +50,18 @@ function makeSolarSystem(){
 	findSemiMinor();
 	ssScale = new solarSystemScale( { s: .000001, sunScale: .0001, planetScale: .001 } );
 
-	var solarSystem = new THREE.Object3D();
+	var ss3D = new THREE.Object3D();
 
-	sun = createSun();
-	solarSystem.add( sun );
+	sun = new Sun();
+	ss.push( sun );
+	ss3D.add( ss[0] );
 
-	createLabel( sun, 1, container );
+	ss[0].label = new Label( ss[0], 1, container );
 
-	// CREATE EACH PLANET
-	for ( var i = 0; i < 8; i ++ ) {
+	for ( var i = 1; i < ephemeris.length; i ++ ) {
 
 		var planetMaterial = new THREE.MeshLambertMaterial( { 
-				map: THREE.ImageUtils.loadTexture( planetTexture[i]), 
+				map: THREE.ImageUtils.loadTexture( ephemeris[i].texture ), 
 				overdraw: true 
 		});
 
@@ -82,22 +71,24 @@ function makeSolarSystem(){
 			linewidth: .5 
 		});
 		
+		ss.push( new Planet( planetMaterial ) );
+		ss[i].setOrbit( ephemeris[i] );
+		ss[i].name = ephemeris[i].name;
 
-		planets.push( createPlanet( 1 , planetMaterial ) );
-		planets[i].setOrbit( semiMajor[i], semiMinor[i], aphelion[i], eccentricity[i], orbitTime[i] );
-		planets[i].name = planetName[i];
 
-		orbits.push( createOrbit( aphelion[i], semiMajor[i], semiMinor[i], axisRez, axisMaterial ) );
-		orbits[i].name = planetName[i] + " Orbit";
+		ss[i].orbit = new orbit( ephemeris[i], axisMaterial );
+		ss[i].orbit.name = ss[i].name + " Orbit";
 
-		solarSystem.add( planets[i] );
-		solarSystem.add( orbits[i] );
+		ss3D.add( ss[i] );
+		ss3D.add( ss[i].orbit );
 
-		createLabel( planets[i], 1, container );
+		ss[i].label = new Label( ss[i], 1, container );
 
-	};
+	}
+
+	var ruler = new Ruler( ss[3], ss[4] );
+	ss3D.add( ruler );
 
 	setSolarSystemScale();
-
-	return solarSystem;
+	return ss3D;
 };

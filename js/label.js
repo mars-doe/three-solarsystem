@@ -1,32 +1,19 @@
-var labels = [];
-
-function updateLabels(){
-    for (var i in labels) {
-        var label = labels[i];
+function updateLabels( l ){
+    for (var i in l ) {
+        var label = l[i].label;
         label.update();
     }
 } 
 
-function showLabels( show ){
-	for (var i in labels) {
-        var label = labels[i];
-		if( show ) labels[i].show();
-		else labels[i].hide();
+function showLabels( l, show ){
+	for (var i in l) {
+        var label = l[i].label;
+		if( show ) label.show();
+		else label.hide();
 	}
 }
 
-
-function screenXY( vec3 ) {
-    var projector = new THREE.Projector();
-    var vector = projector.projectVector( vec3, camera );
-    var result = new Object();
-
-    result.x = Math.round(vector.x * (window.innerWidth / 2)) + window.innerWidth / 2;
-    result.y = Math.round((0 - vector.y) * (window.innerHeight / 2)) + window.innerHeight / 2;
-    return result;
-}
-
-function createLabel( glObject, size, element ) {
+var Label = function( glObject, size, element ) {
 	var template = document.getElementById('label_template');
 	var label = template.cloneNode(true);
 
@@ -35,7 +22,6 @@ function createLabel( glObject, size, element ) {
 
 	label.object = glObject;
 
-	//line instead of plane
 	label.gyro = new THREE.Gyroscope();
 	label.gyroGeo = new THREE.Mesh( new THREE.PlaneGeometry( 0, 0 ), new THREE.MeshLambertMaterial( { color: 0xCC0000, opacity: 1 } ) );
 	label.gyroGeo.position.set(1,0,0);
@@ -102,5 +88,5 @@ function createLabel( glObject, size, element ) {
         else this.hide();
 	};
 
-	labels.push(label);
+	return label
 }

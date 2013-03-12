@@ -1,4 +1,4 @@
-var Stars = function( systemSize, particleSize){
+var stars = function( systemSize, particleSize){
     
     var particles, geometry, material, i;
     geometry = new THREE.Geometry();

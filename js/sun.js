@@ -14,7 +14,7 @@ var uniforms = {
 };
 
 
-var createSun = function(){
+var Sun = function(){
 
 	uniforms.texture1.value.wrapS = uniforms.texture1.value.wrapT = THREE.MirroredRepeatWrapping;
 	uniforms.texture2.value.wrapS = uniforms.texture2.value.wrapT = THREE.MirroredRepeatWrapping;
@@ -32,7 +32,7 @@ var createSun = function(){
 	// 	overdraw: true 
 	// });
 	
-	var sun = createPlanet( 1 , sunMaterial );
+	var sun = new Planet( sunMaterial );
 	sun.name = "The Sun";
 
 	/********************************

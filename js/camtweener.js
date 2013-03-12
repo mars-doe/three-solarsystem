@@ -40,6 +40,7 @@ function camTweener( newCamPosition, newTarget, time ) {
 		.onUpdate( update )
 		.onComplete( function(){
 			//update();
+			// camTarget = newTarget;
 			camera.lookAt( newTarget );
 		});
 

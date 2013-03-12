@@ -1,50 +1,30 @@
+var Planet = function( material ){
 
-
-var createPlanet = function( size, material ){
-
-	var LOD = new THREE.LOD(),
+	var LOD,
 		LODLevel = 3,
-		LODDistance = 3000;
+		LODDistance = 3000,
+		eph;
 
-	// for ( var i = 0; i < LODLevel; i++ ) {
-
-	// 	var geometry = new THREE.SphereGeometry( size, 15 / ( i + 1) , 15 / ( i + 1 ) );
-	// 	var planet = new THREE.Mesh( geometry, material );
-
-	// 	planet.updateMatrix();
-	// 	planet.autoUpdateMatrix = false;
-	// 	LOD.addLevel( planet, i * LODDistance );	
-	// 	LOD.updateMatrix();
-	// 	LOD.updateMatrix();
-	// };
-
-	sphereGeo = new THREE.SphereGeometry(size, 15, 15 );
+	sphereGeo = new THREE.SphereGeometry( 1, 15, 15 );
 	LOD = new THREE.Mesh ( sphereGeo, material );
 	LOD.startTime = 0;
 
-	LOD.setOrbit = function( semiMajor, semiMinor, aphelion, eccentricity, orbitTime ){
-		this.semiMajor = semiMajor;
-		this.semiMinor = semiMinor;
-		this.aphelion = aphelion;
-		this.eccentricity = eccentricity;
-		this.orbitTime = orbitTime;
-
-		this.startTime = Math.random() * semiMajor;
-		this.orbit( this.startTime, this.orbitTime );
+	LOD.setOrbit = function( e ){
+		eph = e;
+		this.startTime = Math.random() * eph.A;
+		this.orbiting( this.startTime, eph.period, .00001 );
 	};
 
-	LOD.orbit = function( time, days, scale ){
+	LOD.orbiting = function( time, scale ){
 
 		time += this.startTime;
 
-		var orbitSpeed = time / days;
-		this.rotation.y = -time * days/1000; 
-		this.position.x = scale * ( this.semiMajor * Math.cos( axisRez * Math.PI * 2 + orbitSpeed ) + ( this.aphelion - this.semiMajor ) );
-		this.position.z = scale * ( this.semiMinor * Math.sin( axisRez * Math.PI * 2 + orbitSpeed ) );
+		var orbitSpeed = time / eph.period;
+		this.rotation.y = time * eph.period / 1000; 
+		this.position.x = scale * ( eph.A * Math.cos( Math.PI * 2 - orbitSpeed ) + ( eph.aphelion - eph.A ) );
+		this.position.z = scale * ( eph.semiMinor * Math.sin(  Math.PI * 2 - orbitSpeed ) );
 	};
 
 	return LOD;
 };
-	
-
 

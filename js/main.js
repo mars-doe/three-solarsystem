@@ -14,11 +14,12 @@ var stats,
 	composer, 
 	controls,
 	tween,
-	camTarget;
+	camTarget,
+	solarSystem;
 
 var trajectory;
 
-var timer, time, t;
+var time, t;
 var clock = new THREE.Clock();
 
 var mouse = { x: -1000, y: 0 }, 
@@ -114,14 +115,8 @@ function init() {
 	camOne = new camPosition( { x: 0, y: 50, z: 500 }, { x: 0, y: 0, z: 0 }, 1500 );
 	camTwo = new camPosition( { x: 0, y: 12000, z: 500 }, { x: 0, y: 0, z: 0 }, 5000 );
 	camThree = new camPosition( { x: -500, y: 250, z: -1000 }, { x: 0, y: 0, z: 0 }, 3000 );
-	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, planets[2].position, 1500 );
-	camMars = new camPosition( { x: 75, y: 50, z: 300 }, planets[3].position, 1500 );
-	
-	timer = function(){
-		this.count = 1;
-		this.multiplier = .25;
-		return this;
-	}
+	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, ss[3].position, 1500 );
+	camMars = new camPosition( { x: 75, y: 50, z: 300 }, ss[4].position, 1500 );
 
 	t = new timer();
 
@@ -168,9 +163,22 @@ function buildGUI(){
 	// for ( var i in labels ){
 	// 	labelFolder.add( labels[i], 'visible' ).name( labels[i].name + ' label'  );
 	// }
-	gui.add(ssScale, 's', .000001, .00001).name('SS Scale');
-	gui.add(ssScale, 'sunScale', .00001, .0001).name('Sun Scale');
-	gui.add(ssScale, 'planetScale', .001, .01).name('Planet Scale');
+
+	gui.add(ssScale, 's', .000001, .00001)
+		.name('SS Scale')
+		.onChange( function(){
+			scaling = true;
+		});
+	gui.add(ssScale, 'sunScale', .00001, .0001)
+		.name('Sun Scale')
+		.onChange( function(){
+			scaling = true;
+		});
+	gui.add(ssScale, 'planetScale', .001, .01)
+		.name('Planet Scale')
+		.onChange( function(){
+			scaling = true;
+		});
 
 	var camFolder = gui.addFolder( 'Camera Positions' );
 	camFolder.open();
@@ -187,7 +195,7 @@ function setupScene(){
 
 	trajectory = new Trajectory ( 2 );
 	solarSystem = makeSolarSystem();
-	starField = new Stars( 40000, 100 );
+	starField = new stars( 40000, 100 );
 	solarSystem.add( starField );
 
 	lensFlares = new THREE.Object3D();
@@ -236,12 +244,13 @@ function animate() {
     camera.updateProjectionMatrix();
 	camera.lookAt( camTarget );
 
-    updateLabels();
+	updateRulers();
+    updateLabels( ss );
 	controls.update();
 	stats.update();
 	TWEEN.update();
 	setSolarSystemScale();
-	planetsOrbit(-t.count);
+	planetsOrbit( t.count );
 
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
 	projector.unprojectVector( vector, camera );
@@ -253,18 +262,16 @@ function animate() {
 	if ( intersects.length > 0 ) {
 		if ( INTERSECTED != intersects[ 0 ].object ) {
 			INTERSECTED = intersects[ 0 ].object;
-			console.log(INTERSECTED);
-			for ( var i in labels ){
-				if( labels[i].name == INTERSECTED.name ) {
-					labels[i].show();
-					break;
-				}
-			}
+			INTERSECTED.label.show();
 			setLoadMessage('Awesome information about ' + INTERSECTED.name + ' could go here!');
 			$( '#loadtext' ).fadeIn('fast');
 		}
 	} else {
-		showLabels( false );
+		// showLabels( ss, false );
+		if ( INTERSECTED != null){
+			// INTERSECTED.label.hide();
+			showLabels( ss, false );
+		}
 		INTERSECTED = null;
 		$( '#loadtext' ).fadeOut('fast');
 
@@ -275,7 +282,7 @@ function animate() {
 			if ( object instanceof THREE.LOD ) {
 			object.update( camera );
 		}
-	} );
+	});
 
 	var delta = clock.getDelta();
 	var time = clock.getElapsedTime();

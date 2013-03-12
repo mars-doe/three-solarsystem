@@ -1,18 +1,19 @@
-var createOrbit = function( aphelion, semiMajor, semiMinor, axisRez, material ){
+var orbit = function( e, material ){
 	
 	var LOD = new THREE.LOD(),
 		LODLevel = 3,
-		LODDistance = 3000;
+		LODDistance = 3000,
+		axisRez = 50,
+		eph = e;
 
 	for (var i = 0; i < LODLevel; i++) {
-
 		axisRez = axisRez / ( i + 1 );
 		var axisPoints = [];
 		var spline = [];
 		
 		for( var i = 0; i < axisRez; i++ ) {
-			x = ( semiMajor * Math.cos( i / axisRez * Math.PI * 2 ) + ( aphelion - semiMajor ) );
-			z = ( semiMinor * Math.sin( i / axisRez * Math.PI * 2 ) );
+			x = ( eph.A * Math.cos( i / axisRez * Math.PI * 2 ) + ( eph.aphelion - eph.A ) );
+			z = ( eph.semiMinor * Math.sin( i / axisRez * Math.PI * 2 ) );
 			axisPoints[i] = new THREE.Vector3( x, 0, z );
 		}
 			
@@ -33,5 +34,3 @@ var createOrbit = function( aphelion, semiMajor, semiMinor, axisRez, material ){
 
  return LOD;
 };
-	
-
