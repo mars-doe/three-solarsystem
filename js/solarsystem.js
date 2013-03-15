@@ -23,7 +23,7 @@ function planetsOrbit( time ){
 	if( time > prevTime ){
 		for ( var i = 1; i < ss.length; i ++ ) {
 	        var planet = ss[i];
-			ss[i].orbiting( time, ssScale.s );
+			ss[i].orbiting( ephemeris[i], time, ssScale.s );
 		}
 		prevTime = time;
 	}	
@@ -32,12 +32,12 @@ function planetsOrbit( time ){
 function setSolarSystemScale(){
 	if ( scaling ){
 		var sunS = 1392684 * ssScale.sunScale;
-		ss[0].scale.set( sunS, sunS, sunS );
+		// ss[0].scale.set( sunS, sunS, sunS );
 
 		for ( var i = 1; i < ss.length; i ++ ) {
 			var planetS = ephemeris[i].size * ssScale.planetScale;
 			ss[i].scale.set( planetS, planetS, planetS );
-			ss[i].orbit.scale.set( ssScale.s, ssScale.s, ssScale.s );
+			// ss[i].orbit.scale.set( ssScale.s, ssScale.s, ssScale.s );
 	    }
 
 	scaling = false;
@@ -48,7 +48,7 @@ function setSolarSystemScale(){
 function makeSolarSystem(){
 
 	findSemiMinor();
-	ssScale = new solarSystemScale( { s: .000001, sunScale: .0001, planetScale: .001 } );
+	ssScale = new solarSystemScale( { s: 10, sunScale: 10, planetScale: .001 } );
 
 	var ss3D = new THREE.Object3D();
 
@@ -72,23 +72,19 @@ function makeSolarSystem(){
 		});
 		
 		ss.push( new Planet( planetMaterial ) );
-		ss[i].setOrbit( ephemeris[i] );
+		// ss[i].setOrbit( ephemeris[i] );
 		ss[i].name = ephemeris[i].name;
-
-
-		ss[i].orbit = new orbit( ephemeris[i], axisMaterial );
-		ss[i].orbit.name = ss[i].name + " Orbit";
-
 		ss3D.add( ss[i] );
-		ss3D.add( ss[i].orbit );
+
+		// ss[i].orbit = new Orbit( ephemeris[i], axisMaterial );
+		// ss[i].orbit.name = ss[i].name + " Orbit";
+		// ss3D.add( ss[i].orbit );
 
 		ss[i].label = new Label( ss[i], 1, container );
 
 	}
 
-	var ruler = new Ruler( ss[3], ss[4] );
-	ss3D.add( ruler );
-
-	setSolarSystemScale();
+	planetsOrbit(2456365);
+	// setSolarSystemScale();
 	return ss3D;
 };

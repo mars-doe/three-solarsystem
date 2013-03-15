@@ -45,10 +45,10 @@ $(document).ready( function() {
 	setLoadMessage("Loading the Solar System");
 
 	loader.options.convertUpAxis = true;
-	loader.load( './models/galaxy.dae', function ( collada ) {
+	loader.load( './models/galaxy2.dae', function ( collada ) {
 
 		dae = collada.scene;
-		dae.scale.x = dae.scale.y = dae.scale.z = 50000;
+		dae.scale.x = dae.scale.y = dae.scale.z = 60000;
 		dae.updateMatrix();
 
 	} );
@@ -158,27 +158,21 @@ function buildGUI(){
 	var gui = new dat.GUI();
 	gui.add( t, 'multiplier', 0, 5).name( 'Orbit Speed' );
 
-	// var labelFolder = gui.addFolder( 'Label Visibility' );
-	// labelFolder.open();
-	// for ( var i in labels ){
-	// 	labelFolder.add( labels[i], 'visible' ).name( labels[i].name + ' label'  );
-	// }
-
-	gui.add(ssScale, 's', .000001, .00001)
-		.name('SS Scale')
-		.onChange( function(){
-			scaling = true;
-		});
-	gui.add(ssScale, 'sunScale', .00001, .0001)
-		.name('Sun Scale')
-		.onChange( function(){
-			scaling = true;
-		});
-	gui.add(ssScale, 'planetScale', .001, .01)
-		.name('Planet Scale')
-		.onChange( function(){
-			scaling = true;
-		});
+	// gui.add(ssScale, 's', .000001, .00001)
+	// 	.name('SS Scale')
+	// 	.onChange( function(){
+	// 		scaling = true;
+	// 	});
+	// gui.add(ssScale, 'sunScale', .00001, .0001)
+	// 	.name('Sun Scale')
+	// 	.onChange( function(){
+	// 		scaling = true;
+	// 	});
+	// gui.add(ssScale, 'planetScale', .001, .01)
+	// 	.name('Planet Scale')
+	// 	.onChange( function(){
+	// 		scaling = true;
+	// 	});
 
 	var camFolder = gui.addFolder( 'Camera Positions' );
 	camFolder.open();
@@ -187,7 +181,6 @@ function buildGUI(){
 	camFolder.add( camThree, 'tween' ).name( 'Camera Three' );
 	camFolder.add( camEarth, 'tween' ).name( 'Camera Earth' );
 	camFolder.add( camMars, 'tween' ).name( 'Camera Mars' );
-
 }
 
 
@@ -195,17 +188,20 @@ function setupScene(){
 
 	trajectory = new Trajectory ( 2 );
 	solarSystem = makeSolarSystem();
-	starField = new stars( 40000, 100 );
-	solarSystem.add( starField );
+	// starField = new stars( 40000, 100 );
+	// solarSystem.add( starField );
 
 	lensFlares = new THREE.Object3D();
 	var override = THREE.ImageUtils.loadTexture( "./images/lensflare/hexangle.png" );
 	var sunFlare = addLensFlare( 0, 0, 10, 5, override );
 	lensFlares.add( sunFlare );
 
-	scene.add( dae );
+	// var ruler = new Ruler( ss[3], ss[4] );
+	// scene.add( ruler );
+
+	//scene.add( dae );
 	scene.add( solarSystem );
-	scene.add( lensFlares );
+	//scene.add( lensFlares );
 }
 
 function onDocumentMouseMove( event ) {
@@ -229,8 +225,6 @@ function onWindowResize() {
 	camera.aspect = $(window).width() / $(window).height();
 	camera.updateProjectionMatrix();
 
-	updateLabels();
-
 	renderer.setSize( $(window).width(), $(window).height() );
 
 	//composer.reset();
@@ -245,12 +239,12 @@ function animate() {
 	camera.lookAt( camTarget );
 
 	updateRulers();
-    updateLabels( ss );
+    updateLabels();
 	controls.update();
 	stats.update();
 	TWEEN.update();
 	setSolarSystemScale();
-	planetsOrbit( t.count );
+	// planetsOrbit( t.count );
 
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
 	projector.unprojectVector( vector, camera );
@@ -277,12 +271,12 @@ function animate() {
 
 	}	
 
-	scene.updateMatrixWorld();
-	scene.traverse( function ( object ) {
-			if ( object instanceof THREE.LOD ) {
-			object.update( camera );
-		}
-	});
+	// scene.updateMatrixWorld();
+	// scene.traverse( function ( object ) {
+	// 		if ( object instanceof THREE.LOD ) {
+	// 		object.update( camera );
+	// 	}
+	// });
 
 	var delta = clock.getDelta();
 	var time = clock.getElapsedTime();

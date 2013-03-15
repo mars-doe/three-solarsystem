@@ -4,11 +4,25 @@ var timer = function(){
 	return this;
 }
 
+function toJD( day ) {
+}
+
+function fromJD( jd ) {
+}
+
 function vec3Mid( vec1, vec2 ){
 	var vec = new THREE.Vector3();
 	vec.x = (vec1.x + vec2.x) / 2;
 	vec.y = (vec1.y + vec2.y) / 2;
 	vec.z = (vec1.z + vec2.z) / 2;
+	return vec;
+}
+
+function lineMid( line ){
+	var vec = new THREE.Vector3();
+	var vec1 = line.geometry.vertices[0].clone();
+	var vec2 = line.geometry.vertices[ line.geometry.vertices.length - 1 ].clone();
+	vec = vec3Mid( vec1, vec2 );
 	return vec;
 }
 
