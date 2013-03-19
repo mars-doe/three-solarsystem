@@ -71,7 +71,7 @@ function makeSolarSystem(){
 			linewidth: .5 
 		});
 		
-		ss.push( new Planet( planetMaterial ) );
+		ss.push( new Planet( planetMaterial, i ) );
 		// ss[i].setOrbit( ephemeris[i] );
 		ss[i].name = ephemeris[i].name;
 		ss3D.add( ss[i] );

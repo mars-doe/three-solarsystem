@@ -119,6 +119,7 @@ function init() {
 	camMars = new camPosition( { x: 75, y: 50, z: 300 }, ss[4].position, 1500 );
 
 	t = new timer();
+	t.count = 2456365;
 
 	buildGUI();
 
@@ -244,7 +245,7 @@ function animate() {
 	stats.update();
 	TWEEN.update();
 	setSolarSystemScale();
-	// planetsOrbit( t.count );
+	planetsOrbit( t.count );
 
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
 	projector.unprojectVector( vector, camera );
