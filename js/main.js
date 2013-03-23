@@ -45,7 +45,7 @@ $(document).ready( function() {
 	setLoadMessage("Loading the Solar System");
 
 	loader.options.convertUpAxis = true;
-	loader.load( './models/galaxy2.dae', function ( collada ) {
+	loader.load( './models/galaxy.dae', function ( collada ) {
 
 		dae = collada.scene;
 		dae.scale.x = dae.scale.y = dae.scale.z = 60000;
@@ -107,7 +107,7 @@ function init() {
 	$container.append( renderer.domElement );
 	renderer.autoClear = false;
 
-	controls = new THREE.OrbitControls( camera );
+	controls = new THREE.OrbitControls( camera, $container[0] );
 	controls.addEventListener( 'change', render );
 
 	setupScene();
@@ -122,22 +122,6 @@ function init() {
 	t.count = 2456365;
 
 	buildGUI();
-
-	/********************************
-		POST-PROCESSING
-	********************************/
-
-	// var renderModel = new THREE.RenderPass( scene, camera );
-	// // var effectBloom = new THREE.BloomPass( 1.25 );
-	// var effectFilm = new THREE.FilmPass( 0.35, 0.95, 2048, false );
-
-	// effectFilm.renderToScreen = true;
-
-	// composer = new THREE.EffectComposer( renderer );
-
-	// composer.addPass( renderModel );
-	// // composer.addPass( effectBloom );
-	// composer.addPass( effectFilm );
 
 	/********************************
 		STATS
@@ -159,22 +143,6 @@ function buildGUI(){
 	var gui = new dat.GUI();
 	gui.add( t, 'multiplier', 0, 5).name( 'Orbit Speed' );
 
-	// gui.add(ssScale, 's', .000001, .00001)
-	// 	.name('SS Scale')
-	// 	.onChange( function(){
-	// 		scaling = true;
-	// 	});
-	// gui.add(ssScale, 'sunScale', .00001, .0001)
-	// 	.name('Sun Scale')
-	// 	.onChange( function(){
-	// 		scaling = true;
-	// 	});
-	// gui.add(ssScale, 'planetScale', .001, .01)
-	// 	.name('Planet Scale')
-	// 	.onChange( function(){
-	// 		scaling = true;
-	// 	});
-
 	var camFolder = gui.addFolder( 'Camera Positions' );
 	camFolder.open();
 	camFolder.add( camOne, 'tween' ).name( 'Camera Home' );
@@ -189,20 +157,19 @@ function setupScene(){
 
 	trajectory = new Trajectory ( 2 );
 	solarSystem = makeSolarSystem();
-	// starField = new stars( 40000, 100 );
-	// solarSystem.add( starField );
+	starField = new stars( 40000, 100 );
+	solarSystem.add( starField );
 
 	lensFlares = new THREE.Object3D();
 	var override = THREE.ImageUtils.loadTexture( "./images/lensflare/hexangle.png" );
 	var sunFlare = addLensFlare( 0, 0, 10, 5, override );
 	lensFlares.add( sunFlare );
 
-	// var ruler = new Ruler( ss[3], ss[4] );
+	var ruler = new Ruler( ss[3], ss[4] );
 	// scene.add( ruler );
-
-	//scene.add( dae );
+	
 	scene.add( solarSystem );
-	//scene.add( lensFlares );
+	// scene.add( lensFlares );
 }
 
 function onDocumentMouseMove( event ) {
@@ -216,7 +183,6 @@ function onDocumentMouseMove( event ) {
 
 function onWindowResize() {
 
-
 	windowHalfX = $(window).width() / 2;
 	windowHalfY = $(window).height() / 2;
 
@@ -227,8 +193,6 @@ function onWindowResize() {
 	camera.updateProjectionMatrix();
 
 	renderer.setSize( $(window).width(), $(window).height() );
-
-	//composer.reset();
 
 }
 
@@ -255,29 +219,26 @@ function animate() {
 	var intersects = raycaster.intersectObjects( solarSystem.children );
 
 	if ( intersects.length > 0 ) {
+
 		if ( INTERSECTED != intersects[ 0 ].object ) {
+			
 			INTERSECTED = intersects[ 0 ].object;
 			INTERSECTED.label.show();
-			setLoadMessage('Awesome information about ' + INTERSECTED.name + ' could go here!');
+			// setLoadMessage('Awesome information about ' + INTERSECTED.name + ' could go here!');
 			$( '#loadtext' ).fadeIn('fast');
+
 		}
+
 	} else {
-		// showLabels( ss, false );
+
 		if ( INTERSECTED != null){
-			// INTERSECTED.label.hide();
 			showLabels( ss, false );
 		}
+
 		INTERSECTED = null;
 		$( '#loadtext' ).fadeOut('fast');
 
 	}	
-
-	// scene.updateMatrixWorld();
-	// scene.traverse( function ( object ) {
-	// 		if ( object instanceof THREE.LOD ) {
-	// 		object.update( camera );
-	// 	}
-	// });
 
 	var delta = clock.getDelta();
 	var time = clock.getElapsedTime();
@@ -292,7 +253,6 @@ function animate() {
 function render() {
 
 	renderer.clear();
-	// composer.render( 0.01 );
 	renderer.render( scene, camera );
 
 }
