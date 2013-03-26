@@ -149,7 +149,7 @@
 //			console.log("[PathUtil root_path] " + this.root_path);
 //
 //		return (this.root_path);
-		return "http://laptop16.local/JAT_Javascript/jat/";
+		return "http:./jat/";
 	};
 
 //	/**
