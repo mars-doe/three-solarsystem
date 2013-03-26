@@ -76,8 +76,10 @@ function init() {
 	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
-	camera.position.y = 200;
-	camera.position.z = 500;
+//	camera.position.y = 200;
+//	camera.position.z = 500;
+	camera.position.y = 600;
+	camera.position.z = 0;
 
 	camTarget = new THREE.Vector3();
 	camTarget = scene.position;
@@ -119,8 +121,10 @@ function init() {
 	camMars = new camPosition( { x: 75, y: 50, z: 300 }, ss[4].position, 1500 );
 
 	t = new timer();
-	t.count = 2456365;
-
+//	t.count = 2456365;
+//	t.count = 2455990.34;
+//	t.count = 2452006.543115556;
+	t.count = 2452000.543115556;
 	buildGUI();
 
 	/********************************
@@ -154,6 +158,8 @@ function buildGUI(){
 
 
 function setupScene(){
+	marsOdyssey = new MarsOdyssey();
+	marsOdyssey.init();
 
 	trajectory = new Trajectory ( 2 );
 	solarSystem = makeSolarSystem();
@@ -171,6 +177,7 @@ function setupScene(){
 	scene.add( solarSystem );
 	// scene.add( lensFlares );
 }
+var marsOdyssey;
 
 function onDocumentMouseMove( event ) {
 
@@ -210,6 +217,9 @@ function animate() {
 	TWEEN.update();
 	setSolarSystemScale();
 	planetsOrbit( t.count );
+	if (marsOdyssey != null) {
+		marsOdyssey.drawTrajectory(t.count);
+	}
 
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
 	projector.unprojectVector( vector, camera );
