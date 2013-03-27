@@ -13,15 +13,13 @@ var solarSystemScale = function(){
 } 				
 
 function planetsOrbit( time ){
-	if( time > prevTime ){
+	// if( time > prevTime ){
 		for ( var i = 1; i < ss.length; i ++ ) {
 	        var planet = ss[i];
 			ss[i].orbiting( time, ssScale.s );
 		}
 		prevTime = time;
-	}	
-	setSolarSystemScale();
-}
+}	
 
 function setSolarSystemScale(){
 	if ( scaling ){
