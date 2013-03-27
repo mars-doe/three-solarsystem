@@ -183,38 +183,32 @@
 			this.lastTrajectoryPoint = new THREE.Vector3(x, y, z);
 			return;
 		}
-		
+
 		end = new THREE.Vector3(x, y, z);
 		this.lastTrajectoryPoint = end;
 
 		splineMat = new THREE.LineBasicMaterial( { color: 0x2BBFBD, opacity: 0.25, linewidth: 1 } );
-
 		line = new THREE.Line( new THREE.Geometry(), splineMat );
 
 		if ( this.prevLine != null ){
 			line.geometry.vertices = this.prevLine.geometry.vertices;
+			scene.remove( this.prevLine );
+			this.prevLine.geometry.dispose();
 		}
 
 		line.geometry.vertices.push( end );
 
-		var particleMat = new THREE.ParticleBasicMaterial({
-			size: .5,
-			color: 0xFFFFFF,
-			transparent: true
-		});
+		// var particleMat = new THREE.ParticleBasicMaterial({
+		// 	size: .5,
+		// 	color: 0xFFFFFF,
+		// 	transparent: true
+		// });
 
-		var particle = new THREE.ParticleSystem( line.geometry, particleMat );
-
-
+		// var particle = new THREE.ParticleSystem( line.geometry, particleMat );
 		// scene.add( particle );
-		scene.remove( this.prevLine );
+
 		scene.add( line );
 		this.prevLine = line;
-
-		// create new line if it hasn't been created before
-		// else add the new position to the old line
-		// remove the old line from the scene
-		// add the new line to the scene.
 	}
 
 	Number.prototype.Julian2Date = function() {
