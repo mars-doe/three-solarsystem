@@ -20,12 +20,13 @@ function planetsOrbit( time ){
 		}
 		prevTime = time;
 	}	
+	setSolarSystemScale();
 }
 
 function setSolarSystemScale(){
 	if ( scaling ){
 		var sunS = 1392684 * ssScale.sunScale;
-		// ss[0].scale.set( sunS, sunS, sunS );
+		ss[0].scale.set( sunS, sunS, sunS );
 
 		for ( var i = 1; i < ss.length; i ++ ) {
 			var planetS = ephemeris[i].size * ssScale.planetScale;
@@ -40,7 +41,10 @@ function setSolarSystemScale(){
 
 function makeSolarSystem(){
 
-	ssScale = new solarSystemScale( { s: 10, sunScale: 10, planetScale: .001 } );
+	ssScale = new solarSystemScale();
+	ssScale.s = .000001;
+	ssScale.sunScale = .00001;
+	ssScale.planetScale = .001;
 
 	var ss3D = new THREE.Object3D();
 
@@ -62,7 +66,7 @@ function makeSolarSystem(){
 			opacity: .5, 
 			linewidth: .5 
 		});
-		
+	
 		ss.push( new Planet( planetMaterial, i ) );
 		ss[i].name = ephemeris[i].name;
 		ss3D.add( ss[i] );
@@ -70,8 +74,5 @@ function makeSolarSystem(){
 
 	}
 
-//	planetsOrbit(2456365);
-	planetsOrbit(2452006.543115556);
-	// setSolarSystemScale();
 	return ss3D;
 };

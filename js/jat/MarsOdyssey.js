@@ -1,30 +1,28 @@
-//package com.mx.applet;
-//import jat.core.ephemeris.DE405Plus;
-//import jat.core.ephemeris.DE405Body.body;
-//import jat.core.util.PathUtil;
-//import jat.coreNOSA.algorithm.integrators.Printable;
-//import jat.coreNOSA.cm.Constants;
-//import jat.coreNOSA.cm.Lambert;
-//import jat.coreNOSA.cm.LambertException;
-//import jat.coreNOSA.cm.TwoBody;
-//import jat.coreNOSA.math.MatrixVector.data.VectorN;
-//import jat.coreNOSA.spacetime.Time;
-//
-//import java.awt.HeadlessException;
-//import java.io.IOException;
-
-/**
+/* JAT: Java Astrodynamics Toolkit
  * 
- */
+  Copyright 2012 Tobias Berthold
 
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+ 
 /**
  * @author nancy
  *
  */
-//public class MarsOdyssey {
+
 
 	function MarsOdyssey() {
-		console.log("MarsOdyssey");
+		// console.log("MarsOdyssey");
 		this.ephemeris = null;
 		this.departure_time = null;
 		this.arrival_time = null;
@@ -48,7 +46,7 @@
 		} else if (this.v0 == null) {
 			this.v0 = result;
 			this.v0.print("v0");
-			console.log("orbital velocity of earth " + this.v0.mag());
+			// console.log("orbital velocity of earth " + this.v0.mag());
 			this.ephemeris.get_planet_pos(DE405Body.MARS, this.arrival_time, this);
 		} else if (this.rf == null) {
 			this.rf = result;
@@ -57,7 +55,7 @@
 		} else {
 			this.vf = result;
 			this.vf.print("vf");
-			console.log("orbital velocity of Mars " + this.vf.mag());
+			// .log("orbital velocity of Mars " + this.vf.mag());
 
 			var initpos = new TwoBody({r:this.r0, v:this.v0});
 			var finalpos = new TwoBody({r:this.rf, v:this.vf});
@@ -77,28 +75,16 @@
 //			} catch (/*LambertException*/ e) {
 //				totaldv = -1;
 //				//e.printStackTrace();
-//				console.log("MarsOdyssey.init LambertException " + e);
+				// .log("MarsOdyssey.init LambertException " + e);
 //			}
 			// apply the first delta-v
 			var /*VectorN*/ dv0 = lambert.deltav0;
 			this.v0 = this.v0.plus(dv0);
-			console.log("tof = " + lambert.tof);
+			// .log("tof = " + lambert.tof);
 			var /*TwoBody*/ chaser = new TwoBody({mu:muforthisproblem, r:this.r0, v:this.v0});
 			chaser.print("chaser orbit");
 			chaser.propagate(0.0, tof, this, true);
-//			// Plotting
-//			x.traj_plot.plot.setMarksStyle("dots", 3);
-//			x.traj_plot.plot.addPoint(3, initpos.getR().x[0], initpos.getR().x[1], false);
-//			x.traj_plot.plot.addPoint(3, finalpos.getR().x[0], finalpos.getR().x[1], false);
-//			x.traj_plot.plot.addLegend(0, "Earth orbit");
-//			x.traj_plot.plot.addLegend(1, "Mars orbit");
-//			x.traj_plot.plot.addLegend(2, "Spacecraft");
-//			// make the plot visible and square
-//			x.traj_plot.setVisible(true);
-//			int size = 300000000;
-//			x.traj_plot.plot.setXRange(-size, size);
-//			x.traj_plot.plot.setYRange(-size, size);
-			console.log("Total delta-v = " + totaldv + " km/s");
+
 			this.complete = true;
 		}
 	};
@@ -108,7 +94,7 @@
 	};
 
 	MarsOdyssey.prototype.init = function() {
-		console.log("MarsOdyssey.init");
+		// console.log("MarsOdyssey.init");
 
         var pathUtil = new PathUtil();
         this.ephemeris = new DE405Plus(pathUtil);
@@ -116,8 +102,8 @@
 
         this.departure_time = new Time({Yr:2001, Mon:4, D:7, Hr:1, Mn:1, S:1});
         this.arrival_time = new Time({Yr:2001, Mon:10, D:24, Hr:1, Mn:1, S:1});
-        console.log("departure_time = " + this.departure_time.jd_tt() + ", arrival_time = " + this.arrival_time.jd_tt());
-        console.log("departure_time = " + this.departure_time.jd_tt().Julian2Date().toString() + ", arrival_time = " + this.arrival_time.jd_tt().Julian2Date().toString());
+        // console.log("departure_time = " + this.departure_time.jd_tt() + ", arrival_time = " + this.arrival_time.jd_tt());
+        // console.log("departure_time = " + this.departure_time.jd_tt().Julian2Date().toString() + ", arrival_time = " + this.arrival_time.jd_tt().Julian2Date().toString());
 
 		// create a TwoBody orbit using orbit elements
         this.ephemeris.get_planet_pos(DE405Body.EARTH, this.departure_time, this);
@@ -139,7 +125,7 @@
 //		var date = julianTime.jd_tt().Julian2Date();
 //		console.log("time = " + julianTime.jd_tt() + "(" + date.toString() + "): x = " + data[0] + ", y = " + data[1] + ", z = " + data[2]);
 		if (time == 0) {
-			console.log("time = " + julianTime.jd_tt() + ": x = " + data[0] + ", y = " + data[1] + ", z = " + data[2]);
+			// console.log("time = " + julianTime.jd_tt() + ": x = " + data[0] + ", y = " + data[1] + ", z = " + data[2]);
 		}
 		this.onAddPoint(julianTime.jd_tt(), + data[0], + data[1], + data[2]);
 	};

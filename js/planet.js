@@ -10,9 +10,9 @@ var Planet = function( material, i ){
 	sphereGeo = new THREE.SphereGeometry( 1, 15, 15 );
 	LOD = new THREE.Mesh ( sphereGeo, material );
 	LOD.startTime = 0;
-	LOD.position.x = 100000;
-	LOD.position.y = 100000;
-	LOD.position.z = 100000;
+	// LOD.position.x = 100000;
+	// LOD.position.y = 100000;
+	// LOD.position.z = 100000;
 
 	LOD.orbiting = function( JD, s ){
 
@@ -42,7 +42,7 @@ var Planet = function( material, i ){
 
 		var date = JD.Julian2Date();
 		if ((planetID == 3) && (date.getMonth() != lastDate)) {
-			console.log(date.toString() + ":" + ", x = " + this.position.x + " y = " + this.position.y + " z = " + this.position.z);
+			// console.log(date.toString() + ":" + ", x = " + this.position.x + " y = " + this.position.y + " z = " + this.position.z);
 			lastDate = date.getMonth();
 		}
 	};
@@ -52,9 +52,9 @@ var Planet = function( material, i ){
 		this.position.y = result.x[1] * scale;// / 1000000;
 		this.position.z = result.x[2] * scale;// / 1000000;
 		if ((this.position.x == 0) && (this.position.y == 0) && (this.position.z == 0)) {
-			this.position.x = 100000;
-			this.position.y = 100000;
-			this.position.z = 100000;
+			this.position.x = scale;
+			this.position.y = scale;
+			this.position.z = scale;
 		}
 
 	};

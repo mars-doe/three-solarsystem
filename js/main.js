@@ -76,10 +76,10 @@ function init() {
 	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
-//	camera.position.y = 200;
-//	camera.position.z = 500;
-	camera.position.y = 600;
-	camera.position.z = 0;
+	camera.position.y = 200;
+	camera.position.z = 500;
+	// camera.position.y = 600;
+	// camera.position.z = 0;
 
 	camTarget = new THREE.Vector3();
 	camTarget = scene.position;
@@ -121,9 +121,6 @@ function init() {
 	camMars = new camPosition( { x: 75, y: 50, z: 300 }, ss[4].position, 1500 );
 
 	t = new timer();
-//	t.count = 2456365;
-//	t.count = 2455990.34;
-//	t.count = 2452006.543115556;
 	t.count = 2452000.543115556;
 	buildGUI();
 
@@ -145,7 +142,23 @@ function init() {
 function buildGUI(){
 
 	var gui = new dat.GUI();
-	gui.add( t, 'multiplier', 0, 5).name( 'Orbit Speed' );
+	gui.add( t, 'multiplier', -5, 5).name( 'Orbit Speed' );
+	gui.add(ssScale, 's', .000001, .00001)
+		.name('SS Scale')
+		.onChange( function(){
+			scaling = true;
+		});
+	gui.add(ssScale, 'sunScale', .00001, .0001)
+		.name('Sun Scale')
+		.onChange( function(){
+			scaling = true;
+		});
+	gui.add(ssScale, 'planetScale', .001, .01)
+		.name('Planet Scale')
+		.onChange( function(){
+			scaling = true;
+	});
+
 
 	var camFolder = gui.addFolder( 'Camera Positions' );
 	camFolder.open();
@@ -172,8 +185,9 @@ function setupScene(){
 	lensFlares.add( sunFlare );
 
 	var ruler = new Ruler( ss[3], ss[4] );
-	// scene.add( ruler );
+	scene.add( ruler );
 	
+	scene.add( dae );
 	scene.add( solarSystem );
 	// scene.add( lensFlares );
 }
@@ -217,6 +231,7 @@ function animate() {
 	TWEEN.update();
 	setSolarSystemScale();
 	planetsOrbit( t.count );
+
 	if (marsOdyssey != null) {
 		marsOdyssey.drawTrajectory(t.count);
 	}
