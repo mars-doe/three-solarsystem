@@ -156,7 +156,7 @@ function buildGUI(){
 	camFolder.add( camMars, 'tween' ).name( 'Camera Mars' );
 }
 
-
+var marsOdyssey;
 function setupScene(){
 	marsOdyssey = new MarsOdyssey();
 	marsOdyssey.init();
@@ -177,7 +177,7 @@ function setupScene(){
 	scene.add( solarSystem );
 	// scene.add( lensFlares );
 }
-var marsOdyssey;
+
 
 function onDocumentMouseMove( event ) {
 

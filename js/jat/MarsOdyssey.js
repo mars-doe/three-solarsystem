@@ -36,6 +36,7 @@
 		this.trajectory = new Array();
 		this.complete = false;
 		this.lastTrajectoryPoint;
+		this.lastLine;
 		this.lastTime;
 	}
 
@@ -150,18 +151,19 @@
 
 	MarsOdyssey.prototype.drawTrajectory = function(time) {
 		var start,
-		end,
-		axisRez,
-		axisPoints = [],
-		spline,
-		splineMat,
-		splineGeo,
-		splinePoints,
-		line
-	;
+			end,
+			axisRez,
+			axisPoints = [],
+			spline,
+			splineMat,
+			splineGeo,
+			splinePoints,
+			line	
+		;
 		if (!this.complete) {
 			return;
 		}
+
 		var point = null;
 		for (var index = 0; index < this.trajectory.length - 1; index++) {
 			if ((time >= this.trajectory[index].time) && (time <= this.trajectory[index + 1].time)) {
@@ -169,38 +171,50 @@
 				break;
 			}
 		}
+
 		if (point == null) {
 			return;
 		}
 		var x = point.x / 1000000;
 		var y = point.y / 1000000;
 		var z = point.z / 1000000;
-//		console.log("drawTrajectory, x = " + x + ", y = " + y + ", z = " + z);
-		if (this.lastTrajectoryPoint == null) {
+
+		if (this.lastTrajectoryPoint == null ) {
 			this.lastTrajectoryPoint = new THREE.Vector3(x, y, z);
-			lastTime = time;
 			return;
 		}
-		start = this.lastTrajectoryPoint;
+		
 		end = new THREE.Vector3(x, y, z);
 		this.lastTrajectoryPoint = end;
-		axisRez = 2;//resolution;
-		axisPoints = [ start, end ];
 
 		splineMat = new THREE.LineBasicMaterial( { color: 0x2BBFBD, opacity: 0.25, linewidth: 1 } );
 
-		spline =  new THREE.SplineCurve3( axisPoints );
-		splinePoints = spline.getPoints( axisRez );
-		splineGeo = new THREE.Geometry();
+		line = new THREE.Line( new THREE.Geometry(), splineMat );
 
-		for(var i = 0; i < splinePoints.length; i++){
-			splineGeo.vertices.push( splinePoints[i] );  
+		if ( this.prevLine != null ){
+			line.geometry.vertices = this.prevLine.geometry.vertices;
 		}
 
-		line = new THREE.Line( splineGeo, splineMat );
-		line.updateMatrix();
+		line.geometry.vertices.push( end );
 
+		var particleMat = new THREE.ParticleBasicMaterial({
+			size: .5,
+			color: 0xFFFFFF,
+			transparent: true
+		});
+
+		var particle = new THREE.ParticleSystem( line.geometry, particleMat );
+
+
+		// scene.add( particle );
+		scene.remove( this.prevLine );
 		scene.add( line );
+		this.prevLine = line;
+
+		// create new line if it hasn't been created before
+		// else add the new position to the old line
+		// remove the old line from the scene
+		// add the new line to the scene.
 	}
 
 	Number.prototype.Julian2Date = function() {
