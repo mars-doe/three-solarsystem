@@ -125,7 +125,7 @@
 //		var date = julianTime.jd_tt().Julian2Date();
 //		console.log("time = " + julianTime.jd_tt() + "(" + date.toString() + "): x = " + data[0] + ", y = " + data[1] + ", z = " + data[2]);
 		if (time == 0) {
-			// console.log("time = " + julianTime.jd_tt() + ": x = " + data[0] + ", y = " + data[1] + ", z = " + data[2]);
+			console.log("time = " + julianTime.jd_tt() + ": x = " + data[0] + ", y = " + data[1] + ", z = " + data[2]);
 		}
 		this.onAddPoint(julianTime.jd_tt(), + data[0], + data[1], + data[2]);
 	};

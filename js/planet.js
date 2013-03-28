@@ -9,10 +9,10 @@ var Planet = function( material, i ){
 
 	sphereGeo = new THREE.SphereGeometry( 1, 15, 15 );
 	LOD = new THREE.Mesh ( sphereGeo, material );
-	LOD.startTime = 0;
-	// LOD.position.x = 100000;
-	// LOD.position.y = 100000;
-	// LOD.position.z = 100000;
+	// LOD.startTime = 0;
+	LOD.position.x = 100000;
+	LOD.position.y = 100000;
+	LOD.position.z = 100000;
 
 	LOD.orbiting = function( JD, s ){
 

@@ -17,10 +17,10 @@ var stats,
 	camTarget,
 	solarSystem;
 
-var trajectory;
-
 var time, t;
 var clock = new THREE.Clock();
+var currentTime = new Date();
+var startJD = 2452000.543115556;
 
 var mouse = { x: -1000, y: 0 }, 
 	INTERSECTED;
@@ -78,8 +78,6 @@ function init() {
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
 	camera.position.y = 0;
 	camera.position.z = 500;
-	// camera.position.y = 600;
-	// camera.position.z = 0;
 
 	camTarget = new THREE.Vector3();
 	camTarget = scene.position;
@@ -120,8 +118,8 @@ function init() {
 	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, ss[3].position, 1500 );
 	camMars = new camPosition( { x: 75, y: 50, z: 300 }, ss[4].position, 1500 );
 
-	t = new timer();
-	t.count = 2452000.543115556;
+	timer = new Timer();
+	timer.count = 0;
 	buildGUI();
 
 	/********************************
@@ -134,7 +132,6 @@ function init() {
 	$container.append( stats.domElement );
 
 	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
 	window.addEventListener( 'resize', onWindowResize, false );
 
 }
@@ -142,7 +139,7 @@ function init() {
 function buildGUI(){
 
 	var gui = new dat.GUI();
-	gui.add( t, 'multiplier', -5, 5).name( 'Orbit Speed' );
+	gui.add( timer, 'multiplier', -5, 5).name( 'Orbit Speed' );
 	gui.add(ssScale, 's', .000001, .00001)
 		.name('SS Scale')
 		.onChange( function(){
@@ -170,11 +167,11 @@ function buildGUI(){
 }
 
 var marsOdyssey;
+
 function setupScene(){
 	marsOdyssey = new MarsOdyssey();
 	marsOdyssey.init();
 
-	trajectory = new Trajectory ( 2 );
 	solarSystem = makeSolarSystem();
 	starField = new stars( 40000, 100 );
 	solarSystem.add( starField );
@@ -230,10 +227,12 @@ function animate() {
 	stats.update();
 	TWEEN.update();
 	setSolarSystemScale();
-	planetsOrbit( t.count );
+
+	var JD = startJD + timer.count;
+	planetsOrbit( JD );
 
 	if (marsOdyssey != null) {
-		marsOdyssey.drawTrajectory(t.count);
+		marsOdyssey.drawTrajectory( JD );
 	}
 
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
@@ -266,10 +265,9 @@ function animate() {
 	}	
 
 	var delta = clock.getDelta();
-	var time = clock.getElapsedTime();
 
-	uniforms.time.value = time + delta;
-	t.count = t.count + 1 * t.multiplier;
+	uniforms.time.value = timer.count/10 + delta;
+	timer.count = timer.count + 1 * timer.multiplier;
 
 	camera.lookAt( camTarget );
 	render();

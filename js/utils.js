@@ -1,4 +1,4 @@
-var timer = function(){
+var Timer = function(){
 	this.count = 1;
 	this.multiplier = .25;
 	return this;

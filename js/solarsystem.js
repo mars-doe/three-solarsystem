@@ -46,7 +46,7 @@ function makeSolarSystem(){
 
 	var ss3D = new THREE.Object3D();
 
-	sun = new Sun();
+sun = new Sun();
 	ss.push( sun );
 	ss3D.add( ss[0] );
 
@@ -67,6 +67,7 @@ function makeSolarSystem(){
 	
 		ss.push( new Planet( planetMaterial, i ) );
 		ss[i].name = ephemeris[i].name;
+
 		ss3D.add( ss[i] );
 		ss[i].label = new Label( ss[i], 1, container );
 

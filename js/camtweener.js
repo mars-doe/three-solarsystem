@@ -6,7 +6,7 @@ var camPosition = function( position, target, time ){
 	return this;
 }
 
-function camTweener( newCamPosition, newTarget, time ) {
+function camTweener( newCamPosition, newTarget, time, attach ) {
 
 	var update	= function() {
 		camera.position = camCurrentPosition;
@@ -42,6 +42,10 @@ function camTweener( newCamPosition, newTarget, time ) {
 			//update();
 			// camTarget = newTarget;
 			camera.lookAt( newTarget );
+			// if( attach !== null ){
+			// 	attach.add(camera);
+			// }
+			
 		});
 
 	tweenPosition.start();
