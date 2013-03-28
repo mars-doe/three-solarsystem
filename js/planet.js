@@ -42,7 +42,7 @@ var Planet = function( material, i ){
 
 		var date = JD.Julian2Date();
 		if ((planetID == 3) && (date.getMonth() != lastDate)) {
-			// console.log(date.toString() + ":" + ", x = " + this.position.x + " y = " + this.position.y + " z = " + this.position.z);
+			console.log(date.toString() + ":" + ", x = " + this.position.x + " y = " + this.position.y + " z = " + this.position.z);
 			lastDate = date.getMonth();
 		}
 	};
