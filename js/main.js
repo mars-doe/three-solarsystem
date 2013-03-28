@@ -48,7 +48,7 @@ $(document).ready( function() {
 	loader.load( './models/galaxy.dae', function ( collada ) {
 
 		dae = collada.scene;
-		dae.scale.x = dae.scale.y = dae.scale.z = 50000;
+		dae.scale.x = dae.scale.y = dae.scale.z = 60000;
 		dae.updateMatrix();
 
 	} );
@@ -76,8 +76,10 @@ function init() {
 	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
-	camera.position.y = 200;
+	camera.position.y = 0;
 	camera.position.z = 500;
+	// camera.position.y = 600;
+	// camera.position.z = 0;
 
 	camTarget = new THREE.Vector3();
 	camTarget = scene.position;
@@ -107,7 +109,7 @@ function init() {
 	$container.append( renderer.domElement );
 	renderer.autoClear = false;
 
-	controls = new THREE.OrbitControls( camera );
+	controls = new THREE.OrbitControls( camera, $container[0] );
 	controls.addEventListener( 'change', render );
 
 	setupScene();
@@ -119,24 +121,8 @@ function init() {
 	camMars = new camPosition( { x: 75, y: 50, z: 300 }, ss[4].position, 1500 );
 
 	t = new timer();
-
+	t.count = 2452000.543115556;
 	buildGUI();
-
-	/********************************
-		POST-PROCESSING
-	********************************/
-
-	// var renderModel = new THREE.RenderPass( scene, camera );
-	// // var effectBloom = new THREE.BloomPass( 1.25 );
-	// var effectFilm = new THREE.FilmPass( 0.35, 0.95, 2048, false );
-
-	// effectFilm.renderToScreen = true;
-
-	// composer = new THREE.EffectComposer( renderer );
-
-	// composer.addPass( renderModel );
-	// // composer.addPass( effectBloom );
-	// composer.addPass( effectFilm );
 
 	/********************************
 		STATS
@@ -156,14 +142,7 @@ function init() {
 function buildGUI(){
 
 	var gui = new dat.GUI();
-	gui.add( t, 'multiplier', 0, 5).name( 'Orbit Speed' );
-
-	// var labelFolder = gui.addFolder( 'Label Visibility' );
-	// labelFolder.open();
-	// for ( var i in labels ){
-	// 	labelFolder.add( labels[i], 'visible' ).name( labels[i].name + ' label'  );
-	// }
-
+	gui.add( t, 'multiplier', -5, 5).name( 'Orbit Speed' );
 	gui.add(ssScale, 's', .000001, .00001)
 		.name('SS Scale')
 		.onChange( function(){
@@ -178,7 +157,8 @@ function buildGUI(){
 		.name('Planet Scale')
 		.onChange( function(){
 			scaling = true;
-		});
+	});
+
 
 	var camFolder = gui.addFolder( 'Camera Positions' );
 	camFolder.open();
@@ -187,11 +167,12 @@ function buildGUI(){
 	camFolder.add( camThree, 'tween' ).name( 'Camera Three' );
 	camFolder.add( camEarth, 'tween' ).name( 'Camera Earth' );
 	camFolder.add( camMars, 'tween' ).name( 'Camera Mars' );
-
 }
 
-
+var marsOdyssey;
 function setupScene(){
+	marsOdyssey = new MarsOdyssey();
+	marsOdyssey.init();
 
 	trajectory = new Trajectory ( 2 );
 	solarSystem = makeSolarSystem();
@@ -203,10 +184,14 @@ function setupScene(){
 	var sunFlare = addLensFlare( 0, 0, 10, 5, override );
 	lensFlares.add( sunFlare );
 
+	var ruler = new Ruler( ss[3], ss[4] );
+	scene.add( ruler );
+	
 	scene.add( dae );
 	scene.add( solarSystem );
-	scene.add( lensFlares );
+	// scene.add( lensFlares );
 }
+
 
 function onDocumentMouseMove( event ) {
 
@@ -219,7 +204,6 @@ function onDocumentMouseMove( event ) {
 
 function onWindowResize() {
 
-
 	windowHalfX = $(window).width() / 2;
 	windowHalfY = $(window).height() / 2;
 
@@ -229,11 +213,7 @@ function onWindowResize() {
 	camera.aspect = $(window).width() / $(window).height();
 	camera.updateProjectionMatrix();
 
-	updateLabels();
-
 	renderer.setSize( $(window).width(), $(window).height() );
-
-	//composer.reset();
 
 }
 
@@ -245,12 +225,16 @@ function animate() {
 	camera.lookAt( camTarget );
 
 	updateRulers();
-    updateLabels( ss );
+    updateLabels();
 	controls.update();
 	stats.update();
 	TWEEN.update();
 	setSolarSystemScale();
 	planetsOrbit( t.count );
+
+	if (marsOdyssey != null) {
+		marsOdyssey.drawTrajectory(t.count);
+	}
 
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
 	projector.unprojectVector( vector, camera );
@@ -260,29 +244,26 @@ function animate() {
 	var intersects = raycaster.intersectObjects( solarSystem.children );
 
 	if ( intersects.length > 0 ) {
+
 		if ( INTERSECTED != intersects[ 0 ].object ) {
+			
 			INTERSECTED = intersects[ 0 ].object;
 			INTERSECTED.label.show();
-			setLoadMessage('Awesome information about ' + INTERSECTED.name + ' could go here!');
+			// setLoadMessage('Awesome information about ' + INTERSECTED.name + ' could go here!');
 			$( '#loadtext' ).fadeIn('fast');
+
 		}
+
 	} else {
-		// showLabels( ss, false );
+
 		if ( INTERSECTED != null){
-			// INTERSECTED.label.hide();
 			showLabels( ss, false );
 		}
+
 		INTERSECTED = null;
 		$( '#loadtext' ).fadeOut('fast');
 
 	}	
-
-	scene.updateMatrixWorld();
-	scene.traverse( function ( object ) {
-			if ( object instanceof THREE.LOD ) {
-			object.update( camera );
-		}
-	});
 
 	var delta = clock.getDelta();
 	var time = clock.getElapsedTime();
@@ -297,7 +278,6 @@ function animate() {
 function render() {
 
 	renderer.clear();
-	// composer.render( 0.01 );
 	renderer.render( scene, camera );
 
 }
