@@ -18,7 +18,47 @@
  *
  */
 
+//package jat.coreNOSA.math.MatrixVector.data;
+//
+////import java.io.PrintWriter;
+//import java.io.Serializable;
+//
+////import javax.vecmath.Vector3d;
+//
+///**
+// * <P>
+// * The VectorN Class provides the fundamental operations of numerical vector math,
+// * basic manipulations, and visualization tools.
+// * All the operations in this version of the VectorN Class involve only real matrices.
+// *
+// * @author 
+// * @version 1.0
+// */
+//
+//public class VectorN implements Cloneable, Serializable {
+//
+//	/* ------------------------
+//	   Class variables
+//	 * ------------------------ */
+//
+//	/**
+//	 * 
+//	 */
+//	private static final long serialVersionUID = -5400346413116110237L;
+//
+//	/** Array for internal storage of elements.
+//	 * @serial internal array storage.
+//	 */
+//	public double[] x;
+//
+//	/** Row and column dimensions.
+//	 * @serial vector dimension.
+//	 */
+//	public int length;
 
+	/* ------------------------
+	   Constructors
+	 * ------------------------ */
 	function VectorN(inputOptions) {
 
 		if (inputOptions.n != null) {
@@ -899,11 +939,11 @@
 	 */
 
 	/*public void */VectorN.prototype.print = function(/*String*/ title) {
-		// console.log(" Vector " + title);
+		console.log(" Vector " + title);
 		for (var /*int*/ i = 0; i < this.length; i++) {
-			// console.log("  " + title + "[" + i + "] = " + this.x[i]);
+			console.log("  " + title + "[" + i + "] = " + this.x[i]);
 		}
-		// console.log("-------------------");
+		console.log("-------------------");
 	};
 
 //	/** Print the VectorN to System.out.

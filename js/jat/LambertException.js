@@ -25,3 +25,5 @@
 	function LambertException(/*String*/ message) {
 		this.message = "Lambert "+message;
 	}
+
+//}
