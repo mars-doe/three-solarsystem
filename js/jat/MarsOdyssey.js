@@ -180,7 +180,7 @@ function MarsOdyssey() {
 		if ( this.prevLine != null ){
 			line.geometry.vertices = this.prevLine.geometry.vertices;
 			scene.remove( this.prevLine );
-			this.prevLine.geometry.dispose();
+			// this.prevLine.geometry.dispose();
 		}
 
 		line.geometry.vertices.push( end );

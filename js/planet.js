@@ -18,6 +18,7 @@ var Planet = function( material, i ){
 
 		scale = s;
 		var body = null;
+
 		if (planetID == 1) {
 	        body = DE405Body.MERCURY;
 		} else if (planetID == 2) {
@@ -37,24 +38,26 @@ var Planet = function( material, i ){
 		} else if (planetID == 9) {
 	        body = DE405Body.PLUTO;
 		}
-		var time = new Time({mjd_UTC:TimeUtils$JDtoMJD(JD)});
-        marsOdyssey.ephemeris.get_planet_pos(body, time, this);
+
+		var time = new Time( { mjd_UTC:TimeUtils$JDtoMJD(JD) } );
+		marsOdyssey.ephemeris.get_planet_pos(body, time, this);
 
 		var date = JD.Julian2Date();
 		if ((planetID == 3) && (date.getMonth() != lastDate)) {
-			console.log(date.toString() + ":" + ", x = " + this.position.x + " y = " + this.position.y + " z = " + this.position.z);
 			lastDate = date.getMonth();
 		}
+
 	};
 
 	LOD.ephemerisCallback = function(result) {
 		this.position.x = result.x[0] * scale;// / 1000000;
 		this.position.y = result.x[1] * scale;// / 1000000;
 		this.position.z = result.x[2] * scale;// / 1000000;
+
 		if ((this.position.x == 0) && (this.position.y == 0) && (this.position.z == 0)) {
-			this.position.x = scale;
-			this.position.y = scale;
-			this.position.z = scale;
+			this.position.x = 1000000;
+			this.position.y = 1000000;
+			this.position.z = 1000000;
 		}
 
 	};
