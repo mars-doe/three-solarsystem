@@ -76,7 +76,7 @@ function init() {
 	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
-	camera.position.y = 0;
+	camera.position.y = 100;
 	camera.position.z = 500;
 
 	camTarget = new THREE.Vector3();
@@ -112,7 +112,7 @@ function init() {
 
 	setupScene();
 	
-	camOne = new camPosition( { x: 0, y: 50, z: 500 }, { x: 0, y: 0, z: 0 }, 1500 );
+	camOne = new camPosition( { x: 0, y: 100, z: 500 }, { x: 0, y: 0, z: 0 }, 1500 );
 	camTwo = new camPosition( { x: 0, y: 12000, z: 500 }, { x: 0, y: 0, z: 0 }, 5000 );
 	camThree = new camPosition( { x: -500, y: 250, z: -1000 }, { x: 0, y: 0, z: 0 }, 3000 );
 	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, ss[3].position, 1500 );
@@ -145,12 +145,12 @@ function buildGUI(){
 		.onChange( function(){
 			scaling = true;
 		});
-	gui.add(ssScale, 'sunScale', .00001, .0001)
+	gui.add(ssScale, 'sunScale', .000001, .0001)
 		.name('Sun Scale')
 		.onChange( function(){
 			scaling = true;
 		});
-	gui.add(ssScale, 'planetScale', .001, .01)
+	gui.add(ssScale, 'planetScale', .000001, .01)
 		.name('Planet Scale')
 		.onChange( function(){
 			scaling = true;
@@ -181,9 +181,10 @@ function setupScene(){
 	var sunFlare = addLensFlare( 0, 0, 10, 5, override );
 	lensFlares.add( sunFlare );
 
-	var ruler = new Ruler( ss[3], ss[4] );
-	scene.add( ruler );
+	// var ruler = new Ruler( ss[3], ss[4] );
+	// scene.add( ruler );
 	
+	solarSystem.rotation.x = -2;
 	scene.add( dae );
 	scene.add( solarSystem );
 	// scene.add( lensFlares );
@@ -229,6 +230,7 @@ function animate() {
 	setSolarSystemScale();
 
 	var JD = startJD + timer.count;
+	var JD = new Date().Date2Julian() + timer.count;
 	planetsOrbit( JD );
 
 	if (marsOdyssey != null) {
@@ -258,7 +260,6 @@ function animate() {
 		if ( INTERSECTED != null){
 			showLabels( ss, false );
 		}
-
 		INTERSECTED = null;
 		$( '#loadtext' ).fadeOut('fast');
 

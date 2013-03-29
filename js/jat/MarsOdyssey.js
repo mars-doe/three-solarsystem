@@ -21,22 +21,22 @@
  */
 
 
-	function MarsOdyssey() {
-		// console.log("MarsOdyssey");
-		this.ephemeris = null;
-		this.departure_time = null;
-		this.arrival_time = null;
-		this.r0 = null;
-		this.v0 = null;
-		this.rf = null;
-		this.vf = null;
-		this.trajectoryIndex = 0;
-		this.trajectory = new Array();
-		this.complete = false;
-		this.lastTrajectoryPoint;
-		this.lastLine;
-		this.lastTime;
-	}
+function MarsOdyssey() {
+	// console.log("MarsOdyssey");
+	this.ephemeris = null;
+	this.departure_time = null;
+	this.arrival_time = null;
+	this.r0 = null;
+	this.v0 = null;
+	this.rf = null;
+	this.vf = null;
+	this.trajectoryIndex = 0;
+	this.trajectory = new Array();
+	this.complete = false;
+	this.lastTrajectoryPoint;
+	this.lastLine;
+	this.lastTime;
+}
 
 	MarsOdyssey.prototype.ephemerisCallback = function(result) {
 		if (this.r0 == null) {
@@ -66,7 +66,8 @@
 //			x.plotnum++;
 			finalpos.propagate(0., finalpos.period(), this, false);
 //			x.plotnum++;
-	        var tof = 200. * 86400.0;
+			var days = this.arrival_time.jd_tt() - this.departure_time.jd_tt();
+	        var tof = days * 86400.0;
 			var /*double*/ muforthisproblem = Constants$GM_Sun / 1.e9;
 			var /*Lambert*/ lambert = new Lambert(muforthisproblem);
 			var /*double*/ totaldv;
@@ -100,8 +101,8 @@
         this.ephemeris = new DE405Plus(pathUtil);
 		// Mars Odyssey Mission
 
-        this.departure_time = new Time({Yr:2001, Mon:4, D:7, Hr:1, Mn:1, S:1});
-        this.arrival_time = new Time({Yr:2001, Mon:10, D:24, Hr:1, Mn:1, S:1});
+        this.departure_time = new Time({Yr:2014, Mon:4, D:7, Hr:1, Mn:1, S:1});
+        this.arrival_time = new Time({Yr:2014, Mon:10, D:24, Hr:1, Mn:1, S:1});
         // console.log("departure_time = " + this.departure_time.jd_tt() + ", arrival_time = " + this.arrival_time.jd_tt());
         // console.log("departure_time = " + this.departure_time.jd_tt().Julian2Date().toString() + ", arrival_time = " + this.arrival_time.jd_tt().Julian2Date().toString());
 
@@ -184,16 +185,7 @@
 
 		line.geometry.vertices.push( end );
 
-		// var particleMat = new THREE.ParticleBasicMaterial({
-		// 	size: .5,
-		// 	color: 0xFFFFFF,
-		// 	transparent: true
-		// });
-
-		// var particle = new THREE.ParticleSystem( line.geometry, particleMat );
-		// scene.add( particle );
-
-		scene.add( line );
+		solarSystem.add( line );
 		this.prevLine = line;
 	}
 
