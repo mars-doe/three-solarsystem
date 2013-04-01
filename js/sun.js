@@ -32,7 +32,11 @@ var Sun = function(){
 	// 	overdraw: true 
 	// });
 	
-	var sun = new Planet( sunMaterial );
+	// var sun = new Planet( sunMaterial );
+
+	sunGeo = new THREE.SphereGeometry( 1, 15, 15 );
+	sun = new THREE.Mesh ( sunGeo, sunMaterial );
+
 	sun.name = "The Sun";
 
 	/********************************

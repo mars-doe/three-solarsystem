@@ -1,6 +1,7 @@
-var timer = function(){
-	this.count = 1;
-	this.multiplier = .25;
+var Timer = function(){
+	this.count = 0;
+	this.multiplier = 0;
+	this.JD = 0;
 	return this;
 }
 
@@ -80,4 +81,45 @@ function keyInObject( obj ){
 	      }
 	   }
 	}
+}
+
+function debugAxis(axisLength){
+    //Shorten the vertex function
+    function v(x,y,z){ 
+            return new THREE.Vector3(x,y,z); 
+    }
+    
+    var axes = new THREE.Object3D();
+    //Create axis (point1, point2, colour)
+    function createAxis(p1, p2, color){
+        var line, lineGeometry = new THREE.Geometry(),
+        lineMat = new THREE.LineBasicMaterial({color: color, lineWidth: 1});
+        lineGeometry.vertices.push(p1, p2);
+        line = new THREE.Line(lineGeometry, lineMat);
+        axes.add(line);
+    }
+    
+    createAxis( v(-axisLength, 0, 0), v(axisLength, 0, 0), 0xFF0000);
+    createAxis( v(0, -axisLength, 0), v(0, axisLength, 0), 0x00FF00);
+    createAxis( v(0, 0, -axisLength), v(0, 0, axisLength), 0x0000FF);
+
+    return axes;
+};
+
+function debugGrid( floor, step, size ){
+	// Grid
+	var material = new THREE.LineBasicMaterial( { color: 0x303030 } );
+	var geometry = new THREE.Geometry();
+
+	for ( var i = 0; i <= size / step * 2; i ++ ) {
+
+		geometry.vertices.push( new THREE.Vector3( - size, floor, i * step - size ) );
+		geometry.vertices.push( new THREE.Vector3(   size, floor, i * step - size ) );
+		geometry.vertices.push( new THREE.Vector3( i * step - size, floor, -size ) );
+		geometry.vertices.push( new THREE.Vector3( i * step - size, floor,  size ) );
+
+	}
+
+	var grid = new THREE.Line( geometry, material, THREE.LinePieces );
+	return grid;
 }

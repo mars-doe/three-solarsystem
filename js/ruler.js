@@ -13,7 +13,7 @@ var Ruler = function( p1, p2 ){
 	ruler.p1 = p1;
 	ruler.p2 = p2;
 
-	var offset = 5,
+	var offset = 0,
 		p1vec1 = new THREE.Vector3(),
 		p1vec2 = new THREE.Vector3(),
 		p2vec1 = new THREE.Vector3(),

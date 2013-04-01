@@ -21,7 +21,7 @@
  */
 
 
-function MarsOdyssey() {
+function Trajectory() {
 	// console.log("MarsOdyssey");
 	this.ephemeris = null;
 	this.departure_time = null;
@@ -37,7 +37,21 @@ function MarsOdyssey() {
 	this.lastLine;
 	this.lastTime;
 }
- MarsOdyssey.prototype.ephemerisCallback = function(result) {
+
+Trajectory.prototype.init = function() {
+
+    var pathUtil = new PathUtil();
+    this.ephemeris = new DE405Plus(pathUtil);
+
+	// Mars Odyssey Mission
+    this.departure_time = new Time({Yr:2014, Mon:4, D:7, Hr:1, Mn:1, S:1});
+    this.arrival_time = new Time({Yr:2014, Mon:10, D:24, Hr:1, Mn:1, S:1});
+ 
+	// create a TwoBody orbit using orbit elements
+    this.ephemeris.get_planet_pos( DE405Body.EARTH, this.departure_time, this );
+};
+
+Trajectory.prototype.ephemerisCallback = function(result) {
 	if (this.r0 == null) {
 		this.r0 = result;
 		this.r0.print("r0");
@@ -45,7 +59,6 @@ function MarsOdyssey() {
 	} else if (this.v0 == null) {
 		this.v0 = result;
 		this.v0.print("v0");
-		// console.log("orbital velocity of earth " + this.v0.mag());
 		this.ephemeris.get_planet_pos(DE405Body.MARS, this.arrival_time, this);
 	} else if (this.rf == null) {
 		this.rf = result;
@@ -54,34 +67,28 @@ function MarsOdyssey() {
 	} else {
 		this.vf = result;
 		this.vf.print("vf");
-		// .log("orbital velocity of Mars " + this.vf.mag());
 
 		var initpos = new TwoBody({r:this.r0, v:this.v0});
 		var finalpos = new TwoBody({r:this.rf, v:this.vf});
 
-//			var /*Printable*/ x = new Callback();
 		// propagate the orbits for plotting
 		initpos.propagate(0., initpos.period(), this, true);
-//			x.plotnum++;
+
 		finalpos.propagate(0., finalpos.period(), this, false);
-//			x.plotnum++;
+
 		var days = this.arrival_time.jd_tt() - this.departure_time.jd_tt();
         var tof = days * 86400.0;
-		var /*double*/ muforthisproblem = Constants$GM_Sun / 1.e9;
-		var /*Lambert*/ lambert = new Lambert(muforthisproblem);
-		var /*double*/ totaldv;
-//			try {
+		var muforthisproblem = Constants$GM_Sun / 1.e9;
+		var lambert = new Lambert(muforthisproblem);
+		var totaldv;
+
 			totaldv = lambert.compute(this.r0, this.v0, this.rf, this.vf, tof);
-//			} catch (/*LambertException*/ e) {
-//				totaldv = -1;
-//				//e.printStackTrace();
-			// .log("MarsOdyssey.init LambertException " + e);
-//			}
+
 		// apply the first delta-v
-		var /*VectorN*/ dv0 = lambert.deltav0;
+		var dv0 = lambert.deltav0;
 		this.v0 = this.v0.plus(dv0);
-		// .log("tof = " + lambert.tof);
-		var /*TwoBody*/ chaser = new TwoBody({mu:muforthisproblem, r:this.r0, v:this.v0});
+
+		var chaser = new TwoBody({mu:muforthisproblem, r:this.r0, v:this.v0});
 		chaser.print("chaser orbit");
 		chaser.propagate(0.0, tof, this, true);
 
@@ -89,68 +96,39 @@ function MarsOdyssey() {
 	}
 };
 
-MarsOdyssey.prototype.toString = function() {
-	return "MarsOdyssey";
-};
-
-MarsOdyssey.prototype.init = function( departure_time, arrival_time) {
-	// console.log("MarsOdyssey.init");
-
-    var pathUtil = new PathUtil();
-    this.ephemeris = new DE405Plus(pathUtil);
-	// Mars Odyssey Mission
-
-    this.departure_time = departure_time;
-    this.arrival_time = arrival_time;
-    // console.log("departure_time = " + this.departure_time.jd_tt() + ", arrival_time = " + this.arrival_time.jd_tt());
-    // console.log("departure_time = " + this.departure_time.jd_tt().Julian2Date().toString() + ", arrival_time = " + this.arrival_time.jd_tt().Julian2Date().toString());
-
-	// create a TwoBody orbit using orbit elements
-    this.ephemeris.get_planet_pos(DE405Body.EARTH, this.departure_time, this);
-};
-
-//	public static void main(String[] args) {
-//		MarsOdyssey marsOdyssey = new MarsOdyssey();
-//		marsOdyssey.init();
-//	}
-
-//}
-
-//class Callback implements Printable {
-//	function Callback() {;}
-//	@Override
-
-MarsOdyssey.prototype.print = function(time, data) {
-
+Trajectory.prototype.print = function(/*double*/ time, /*double[]*/ data) {
+	
 	var julianTime = this.departure_time.plus(time);
+
 	if (time == 0) {
-		// console.log("time = " + julianTime.jd_tt() + ": x = " + data[0] + ", y = " + data[1] + ", z = " + data[2]);
+		console.log("time = " + julianTime.jd_tt() + ": x = " + data[0] + ", y = " + data[1] + ", z = " + data[2]);
 	}
 	this.onAddPoint(julianTime.jd_tt(), + data[0], + data[1], + data[2]);
 };
 
-MarsOdyssey.prototype.onAddPoint = function(time, x, y, z) {
-	this.trajectory[ this.trajectoryIndex++ ] = { time:time, point:new THREE.Vector3(x, y, z) };
+
+Trajectory.prototype.onAddPoint = function(time, x, y, z) {
+	this.trajectory[this.trajectoryIndex++] = {time:time, point:new THREE.Vector3(x, y, z)};
 };
 
-MarsOdyssey.prototype.drawTrajectory = function( time, scale ) {
-
+Trajectory.prototype.drawTrajectory = function(time) {
 	var start,
 		end,
 		axisRez,
 		axisPoints = [],
+		spline,
 		splineMat,
+		splineGeo,
+		splinePoints,
 		line	
 	;
-
 	if (!this.complete) {
 		return;
 	}
 
 	var point = null;
-
 	for (var index = 0; index < this.trajectory.length - 1; index++) {
-		if ( ( time >= this.trajectory[index].time ) && ( time <= this.trajectory[index + 1].time ) ) {
+		if ((time >= this.trajectory[index].time) && (time <= this.trajectory[index + 1].time)) {
 			point = this.trajectory[index].point;
 			break;
 		}
@@ -159,10 +137,9 @@ MarsOdyssey.prototype.drawTrajectory = function( time, scale ) {
 	if (point == null) {
 		return;
 	}
-	console.log(scale);
-	var x = point.x * scale;
-	var y = point.y * scale;
-	var z = point.z * scale;
+	var x = point.x / 1000000;
+	var y = point.y / 1000000;
+	var z = point.z / 1000000;
 
 	if (this.lastTrajectoryPoint == null ) {
 		this.lastTrajectoryPoint = new THREE.Vector3(x, y, z);
@@ -178,12 +155,12 @@ MarsOdyssey.prototype.drawTrajectory = function( time, scale ) {
 	if ( this.prevLine != null ){
 		line.geometry.vertices = this.prevLine.geometry.vertices;
 		scene.remove( this.prevLine );
-		// this.prevLine.geometry.dispose();
+		this.prevLine.geometry.dispose();
 	}
 
 	line.geometry.vertices.push( end );
 
-	scene.add( line );
+	solarSystem.add( line );
 	this.prevLine = line;
 }
 
