@@ -1,6 +1,7 @@
 var Timer = function(){
-	this.count = 1;
-	this.multiplier = .25;
+	this.count = 0;
+	this.multiplier = 0;
+	this.JD = 0;
 	return this;
 }
 

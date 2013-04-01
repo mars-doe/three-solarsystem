@@ -6,48 +6,32 @@ var camPosition = function( position, target, time ){
 	return this;
 }
 
-function camTweener( newCamPosition, newTarget, time, attach ) {
+function camTweener( newCamPosition, newTarget, time ) {
 
-	var update	= function() {
-		camera.position = camCurrentPosition;
-		camera.rotation = camCurrentRotation;
-		camera.lookAt( camCurrentTarget );
-	}
-
-	var camCurrentPosition	= camera.position;
-	var camCurrentRotation	= camera.rotation;
-	var camCurrentTarget = camTarget;
-
-	tweenPosition = new TWEEN.Tween( camCurrentPosition )
+	var tweenPosition = new TWEEN.Tween( camera.position )
 		.to( newCamPosition , time )
-		.delay(0)
 		.easing(TWEEN.Easing.Sinusoidal.InOut)
 		.onStart( function(){ 
 			controls.enabled = false; 
 			controls.update();
 		} )
+		.onUpdate( function(){} )
 		.onComplete( function(){ 
 			controls.enabled = true; 
 			controls.update();
 
-		} )
-		.onUpdate( update );
-
-	tweenLookAt = new TWEEN.Tween( camCurrentTarget )
-		.to( newTarget, time)
-		.delay(0)
-		.easing(TWEEN.Easing.Sinusoidal.InOut)
-		.onUpdate( update )
-		.onComplete( function(){
-			//update();
-			// camTarget = newTarget;
-			camera.lookAt( newTarget );
-			// if( attach !== null ){
-			// 	attach.add(camera);
-			// }
-			
-		});
+		} );
 
 	tweenPosition.start();
-	tweenLookAt.start();
+	Tweener( camTarget, newTarget, time );	
+}
+
+a = new TWEEN.Tween(ssScale).to( {s:.000001}, 2000);
+
+
+function Tweener( obj, target, time ){
+	var scaler = new TWEEN.Tween( obj )
+		.to( target, time )
+		.easing( TWEEN.Easing.Sinusoidal.InOut )
+		.start();
 }

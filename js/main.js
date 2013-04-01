@@ -17,10 +17,12 @@ var stats,
 	camTarget,
 	solarSystem;
 
-var time, t;
+var timer;
+
 var clock = new THREE.Clock();
-var currentTime = new Date();
-var startJD = 2452000.543115556;
+
+var departure_time = new Time( { Yr:2014, Mon:4, D:7, Hr:1, Mn:1, S:1 } );
+var arrival_time = new Time( { Yr:2014, Mon:10, D:24, Hr:1, Mn:1, S:1 } );
 
 var mouse = { x: -1000, y: 0 }, 
 	INTERSECTED;
@@ -120,6 +122,7 @@ function init() {
 
 	timer = new Timer();
 	timer.count = 0;
+	timer.JD = new Date().Date2Julian();
 	buildGUI();
 
 	/********************************
@@ -170,7 +173,7 @@ var marsOdyssey;
 
 function setupScene(){
 	marsOdyssey = new MarsOdyssey();
-	marsOdyssey.init();
+	marsOdyssey.init( departure_time, arrival_time );
 
 	solarSystem = makeSolarSystem();
 	starField = new stars( 40000, 100 );
@@ -229,12 +232,11 @@ function animate() {
 	TWEEN.update();
 	setSolarSystemScale();
 
-	var JD = startJD + timer.count;
-	var JD = new Date().Date2Julian() + timer.count;
-	planetsOrbit( JD );
+	planetsOrbit( timer.JD );
 
-	if (marsOdyssey != null) {
-		marsOdyssey.drawTrajectory( JD );
+	// console.log( departure_time.jd_tt() );
+	if (marsOdyssey != null ) {
+		marsOdyssey.drawTrajectory( timer.JD );
 	}
 
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
@@ -266,10 +268,9 @@ function animate() {
 	}	
 
 	var delta = clock.getDelta();
+	uniforms.time.value = timer.count / 10 + delta;
 
-	uniforms.time.value = timer.count/10 + delta;
-	timer.count = timer.count + 1 * timer.multiplier;
-
+	timer.JD = timer.JD + timer.multiplier;
 	camera.lookAt( camTarget );
 	render();
 }

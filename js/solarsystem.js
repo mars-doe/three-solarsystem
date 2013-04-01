@@ -1,9 +1,56 @@
 var ss = [], 
 	sun, 
-	planets = [], 
 	ssScale,
-	scaling = true,
-	prevTime = 0;
+	scaling = true;
+
+var ssBodies = [
+	{
+		name: 'Sun',
+		texture: './images/solarsystem/sunmap.jpg',
+		size: 1392684
+	},{
+		name: 'Mercury',
+		texture: './images/solarsystem/mercurymap.jpg',
+		size: 2439.7,
+		period: 87.96926,
+	},{
+		name: 'Venus',
+		texture: './images/solarsystem/venusmap.jpg',
+		size: 6051.8,
+		period: 224.7008,
+	},{
+		name: 'Earth',
+		texture: './images/solarsystem/earthmap2.jpg',
+		size: 6371.00,
+		period: 365.25636,               
+	},{
+		name: 'Mars',
+		texture: './images/solarsystem/marsmap.jpg',
+		size: 3389.5,
+		period: 686.97959,
+	},{
+		name: 'Jupiter',
+		texture: './images/solarsystem/jupitermap.jpg',
+		size: 69911,
+		period: 4332.8201,
+	},{
+		name: 'Saturn',
+		texture: './images/solarsystem/saturnmap.jpg',
+		size: 58232,
+		period: 10755.699,             
+	},{
+		name: 'Uranus',
+		texture: './images/solarsystem/uranusmap.jpg',
+		size: 30687.153,
+		period: 30700,                  
+
+	},{
+		name: 'Neptune',
+		texture: './images/solarsystem/neptunemap.jpg',
+		size: 24622,
+		period: 60190.03,
+	}	
+]
 
 var solarSystemScale = function(){
 	this.s = .000001;	
@@ -13,12 +60,10 @@ var solarSystemScale = function(){
 } 				
 
 function planetsOrbit( time ){
-	// if( time > prevTime ){
-		for ( var i = 1; i < ss.length; i ++ ) {
-	        var planet = ss[i];
-			ss[i].orbiting( time, ssScale.s );
-		}
-		prevTime = time;
+	for ( var i = 1; i < ss.length; i ++ ) {
+        var planet = ss[i];
+		ss[i].orbiting( time, ssScale.s );
+	}
 }	
 
 function setSolarSystemScale(){
@@ -27,13 +72,11 @@ function setSolarSystemScale(){
 		ss[0].scale.set( sunS, sunS, sunS );
 
 		for ( var i = 1; i < ss.length; i ++ ) {
-			var planetS = ephemeris[i].size * ssScale.planetScale;
+			var planetS = ssBodies[i].size * ssScale.planetScale;
 			ss[i].scale.set( planetS, planetS, planetS );
 			// ss[i].orbit.scale.set( ssScale.s, ssScale.s, ssScale.s );
 	    }
-
 	scaling = false;
-
 	}
 }
 
@@ -46,31 +89,31 @@ function makeSolarSystem(){
 
 	var ss3D = new THREE.Object3D();
 
-sun = new Sun();
-	ss.push( sun );
+	ss.push(  new Sun() );
+	ss[0].rotation.x = 2;
 	ss3D.add( ss[0] );
 
 	ss[0].label = new Label( ss[0], 1, container );
 
-	for ( var i = 1; i < ephemeris.length; i ++ ) {
+	for ( var i = 1; i < ssBodies.length; i ++ ) {
 
 		var planetMaterial = new THREE.MeshLambertMaterial( { 
-				map: THREE.ImageUtils.loadTexture( ephemeris[i].texture ), 
+				map: THREE.ImageUtils.loadTexture( ssBodies[i].texture ), 
 				overdraw: true 
 		});
 
-		var axisMaterial = new THREE.LineBasicMaterial( { 
-			color: 0x202020, 
-			opacity: .5, 
-			linewidth: .5 
-		});
+		// var axisMaterial = new THREE.LineBasicMaterial( { 
+		// 	color: 0x202020, 
+		// 	opacity: .5, 
+		// 	linewidth: .5 
+		// });
 	
 		ss.push( new Planet( planetMaterial, i ) );
-		ss[i].name = ephemeris[i].name;
+		ss[i].rotation.x = 2;
+		ss[i].name = ssBodies[i].name;
 
 		ss3D.add( ss[i] );
 		ss[i].label = new Label( ss[i], 1, container );
-
 	}
 
 	return ss3D;

@@ -3,7 +3,7 @@ var stars = function( systemSize, particleSize){
     
     var particles, geometry, material, i;
     var systemLimit = systemSize / 50;
-    console.log(systemLimit);
+    // console.log(systemLimit);
     geometry = new THREE.Geometry();
 
     for ( i = 0; i < 20000; i ++ ) {
