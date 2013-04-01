@@ -133,7 +133,7 @@ MarsOdyssey.prototype.onAddPoint = function(time, x, y, z) {
 	this.trajectory[ this.trajectoryIndex++ ] = { time:time, point:new THREE.Vector3(x, y, z) };
 };
 
-MarsOdyssey.prototype.drawTrajectory = function( time ) {
+MarsOdyssey.prototype.drawTrajectory = function( time, scale ) {
 
 	var start,
 		end,
@@ -159,10 +159,10 @@ MarsOdyssey.prototype.drawTrajectory = function( time ) {
 	if (point == null) {
 		return;
 	}
-
-	var x = point.x / 1000000;
-	var y = point.y / 1000000;
-	var z = point.z / 1000000;
+	console.log(scale);
+	var x = point.x * scale;
+	var y = point.y * scale;
+	var z = point.z * scale;
 
 	if (this.lastTrajectoryPoint == null ) {
 		this.lastTrajectoryPoint = new THREE.Vector3(x, y, z);
@@ -183,7 +183,7 @@ MarsOdyssey.prototype.drawTrajectory = function( time ) {
 
 	line.geometry.vertices.push( end );
 
-	solarSystem.add( line );
+	scene.add( line );
 	this.prevLine = line;
 }
 

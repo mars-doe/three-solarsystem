@@ -15,7 +15,9 @@ var stats,
 	controls,
 	tween,
 	camTarget,
-	solarSystem;
+	solarSystem,
+	debugGrid,
+	debugAxis;
 
 var timer;
 
@@ -78,8 +80,8 @@ function init() {
 	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
-	camera.position.y = 100;
-	camera.position.z = 500;
+	camera.position.set( 500, 500, 1000 );
+
 
 	camTarget = new THREE.Vector3();
 	camTarget = scene.position;
@@ -115,7 +117,7 @@ function init() {
 	setupScene();
 	
 	camOne = new camPosition( { x: 0, y: 100, z: 500 }, { x: 0, y: 0, z: 0 }, 1500 );
-	camTwo = new camPosition( { x: 0, y: 12000, z: 500 }, { x: 0, y: 0, z: 0 }, 5000 );
+	camTwo = new camPosition( { x: 0, y: 8000, z: 500 }, { x: 0, y: 0, z: 0 }, 5000 );
 	camThree = new camPosition( { x: -500, y: 250, z: -1000 }, { x: 0, y: 0, z: 0 }, 3000 );
 	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, ss[3].position, 1500 );
 	camMars = new camPosition( { x: 75, y: 50, z: 300 }, ss[4].position, 1500 );
@@ -159,7 +161,6 @@ function buildGUI(){
 			scaling = true;
 	});
 
-
 	var camFolder = gui.addFolder( 'Camera Positions' );
 	camFolder.open();
 	camFolder.add( camOne, 'tween' ).name( 'Camera Home' );
@@ -172,22 +173,31 @@ function buildGUI(){
 var marsOdyssey;
 
 function setupScene(){
+
+	debugGrid = new debugGrid(-1, 100, 10000);
+	scene.add(debugGrid);
+
+	debugAxis = new debugAxis(500);
+	scene.add(debugAxis);
+
+
 	marsOdyssey = new MarsOdyssey();
 	marsOdyssey.init( departure_time, arrival_time );
 
 	solarSystem = makeSolarSystem();
+
 	starField = new stars( 40000, 100 );
 	solarSystem.add( starField );
 
 	lensFlares = new THREE.Object3D();
 	var override = THREE.ImageUtils.loadTexture( "./images/lensflare/hexangle.png" );
-	var sunFlare = addLensFlare( 0, 0, 10, 5, override );
-	lensFlares.add( sunFlare );
+	var sunFlare = addLensFlare( 0, 0, 5, 5, override );
+	// scene.add( sunFlare );
 
-	// var ruler = new Ruler( ss[3], ss[4] );
-	// scene.add( ruler );
+
+	var ruler = new Ruler( ss[3], ss[4] );
+	scene.add( ruler );
 	
-	solarSystem.rotation.x = -2;
 	scene.add( dae );
 	scene.add( solarSystem );
 	// scene.add( lensFlares );
@@ -236,7 +246,7 @@ function animate() {
 
 	// console.log( departure_time.jd_tt() );
 	if (marsOdyssey != null ) {
-		marsOdyssey.drawTrajectory( timer.JD );
+		marsOdyssey.drawTrajectory( timer.JD, ssScale.s );
 	}
 
 	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );

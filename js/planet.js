@@ -50,6 +50,7 @@ var Planet = function( material, i ){
 	};
 
 	LOD.ephemerisCallback = function(result) {
+
 		this.position.x = result.x[0] * scale;// / 1000000;
 		this.position.y = result.x[1] * scale;// / 1000000;
 		this.position.z = result.x[2] * scale;// / 1000000;
