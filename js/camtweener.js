@@ -1,7 +1,10 @@
 var camPosition = function( position, target, time ){
+	this.pos = position;
+	this.tar = target;
+	this.t = time;
 	this.tween = function(){
 		TWEEN.removeAll();
-		camTweener( position, target, time );
+		camTweener( this.pos, this.tar, this.t );
 	};
 	return this;
 }
@@ -29,9 +32,3 @@ function camTweener( newCamPosition, newTarget, time ) {
 a = new TWEEN.Tween(ssScale).to( {s:.000001}, 2000);
 
 
-function Tweener( obj, target, time ){
-	var scaler = new TWEEN.Tween( obj )
-		.to( target, time )
-		.easing( TWEEN.Easing.Sinusoidal.InOut )
-		.start();
-}

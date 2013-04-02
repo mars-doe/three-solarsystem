@@ -159,7 +159,7 @@ MarsOdyssey.prototype.drawTrajectory = function( time, scale ) {
 	if (point == null) {
 		return;
 	}
-	console.log(scale);
+
 	var x = point.x * scale;
 	var y = point.y * scale;
 	var z = point.z * scale;
@@ -172,18 +172,18 @@ MarsOdyssey.prototype.drawTrajectory = function( time, scale ) {
 	end = new THREE.Vector3(x, y, z);
 	this.lastTrajectoryPoint = end;
 
-	splineMat = new THREE.LineBasicMaterial( { color: 0x2BBFBD, opacity: 0.25, linewidth: 1 } );
+	splineMat = new THREE.LineBasicMaterial( { color: 0x2BBFBD, opacity: 0.25, linewidth: 1.5 } );
 	line = new THREE.Line( new THREE.Geometry(), splineMat );
 
 	if ( this.prevLine != null ){
 		line.geometry.vertices = this.prevLine.geometry.vertices;
-		scene.remove( this.prevLine );
+		solarSystem.remove( this.prevLine );
 		// this.prevLine.geometry.dispose();
 	}
 
 	line.geometry.vertices.push( end );
 
-	scene.add( line );
+	solarSystem.add( line );
 	this.prevLine = line;
 }
 
