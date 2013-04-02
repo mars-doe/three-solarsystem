@@ -24,7 +24,7 @@ var timer;
 var clock = new THREE.Clock();
 
 var departure_time = new Time( { Yr:2014, Mon:4, D:7, Hr:1, Mn:1, S:1 } );
-var arrival_time = new Time( { Yr:2014, Mon:10, D:24, Hr:1, Mn:1, S:1 } );
+var arrival_time = new Time( { Yr:2014, Mon:9, D:24, Hr:1, Mn:1, S:1 } );
 
 var mouse = { x: -1000, y: 0 }, 
 	INTERSECTED;
@@ -80,7 +80,7 @@ function init() {
 	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
-	camera.position.set( 500, 500, 1000 );
+	camera.position.set( 100, 500, 1000 );
 
 
 	camTarget = new THREE.Vector3();
@@ -117,13 +117,14 @@ function init() {
 	setupScene();
 	
 	camOne = new camPosition( { x: 0, y: 100, z: 500 }, { x: 0, y: 0, z: 0 }, 1500 );
-	camTwo = new camPosition( { x: 0, y: 8000, z: 500 }, { x: 0, y: 0, z: 0 }, 5000 );
+	camTwo = new camPosition( { x: 0, y: 750, z: 50 }, { x: 0, y: 0, z: 0 }, 2000 );
 	camThree = new camPosition( { x: -500, y: 250, z: -1000 }, { x: 0, y: 0, z: 0 }, 3000 );
 	camEarth = new camPosition( { x: 50, y: 50, z: 250 }, ss[3].position, 1500 );
 	camMars = new camPosition( { x: 75, y: 50, z: 300 }, ss[4].position, 1500 );
 
 	timer = new Timer();
 	timer.count = 0;
+	timer.multiplier = .25;
 	timer.JD = new Date().Date2Julian();
 	buildGUI();
 
@@ -173,20 +174,30 @@ function buildGUI(){
 var marsOdyssey;
 
 function setupScene(){
+	// geo = new THREE.Mesh( new THREE.PlaneGeometry( 100, 100 ), new THREE.MeshLambertMaterial( { color: 0xCC0000, opacity:0 } ) );
+	// scene.add(geo);
 
-	debugGrid = new debugGrid(-1, 100, 10000);
-	scene.add(debugGrid);
+	// var SUNmat = new THREE.MeshBasicMaterial( { 
+	// 		map: THREE.ImageUtils.loadTexture( './images/solarsystem/sunflatmap.jpg' ), 
+	// 		overdraw: true 
+	// });
+	// SUNmat.alphaTest = .75;
+	// SUN = new THREE.Mesh( new THREE.PlaneGeometry( 50, 50 ), SUNmat );
+	// scene.add( SUN );
+
+	debugGrid = new debugGrid(-1, 100, 1000);
+	// scene.add(debugGrid);
 
 	debugAxis = new debugAxis(500);
-	scene.add(debugAxis);
-
+	// scene.add(debugAxis);
 
 	marsOdyssey = new MarsOdyssey();
 	marsOdyssey.init( departure_time, arrival_time );
 
 	solarSystem = makeSolarSystem();
+	solarSystem.rotation.x = -2;
 
-	starField = new stars( 40000, 100 );
+	starField = new stars( 45000, 100 );
 	solarSystem.add( starField );
 
 	lensFlares = new THREE.Object3D();
@@ -196,11 +207,20 @@ function setupScene(){
 
 
 	var ruler = new Ruler( ss[3], ss[4] );
-	scene.add( ruler );
+	//scene.add( ruler );
 	
 	scene.add( dae );
 	scene.add( solarSystem );
 	// scene.add( lensFlares );
+
+	ss[1].orbit.rotation.set( 2.25, -1.9, .19);
+	ss[3].orbit.rotation.set( 2, 0, -.003);
+	ss[2].orbit.rotation.set( 2, 0, -.05);
+	ss[4].orbit.rotation.set( 1.99, 2.7, .025);
+	ss[5].orbit.rotation.set(1.99, -2.1,0);
+	ss[6].orbit.rotation.set(2.025, -2, 0.075);
+	ss[7].orbit.rotation.set( 1.98, -.25, -.015);
+	ss[8].orbit.rotation.set( 2.005, 1.25, -.034);
 }
 
 
@@ -235,6 +255,8 @@ function animate() {
     camera.updateProjectionMatrix();
 	camera.lookAt( camTarget );
 
+	SUN.lookAt(camera.position);
+
 	updateRulers();
     updateLabels();
 	controls.update();
@@ -261,24 +283,24 @@ function animate() {
 		if ( INTERSECTED != intersects[ 0 ].object ) {
 			
 			INTERSECTED = intersects[ 0 ].object;
-			INTERSECTED.label.show();
+			// INTERSECTED.add(camera);
+			// INTERSECTED.label.show();
 			// setLoadMessage('Awesome information about ' + INTERSECTED.name + ' could go here!');
-			$( '#loadtext' ).fadeIn('fast');
+			// $( '#loadtext' ).fadeIn('fast');
 
 		}
 
 	} else {
 
 		if ( INTERSECTED != null){
-			showLabels( ss, false );
+			// showLabels( ss, false );
 		}
 		INTERSECTED = null;
 		$( '#loadtext' ).fadeOut('fast');
 
 	}	
 
-	var delta = clock.getDelta();
-	uniforms.time.value = timer.count / 10 + delta;
+	uniforms.time.value = timer.JD / 20;
 
 	timer.JD = timer.JD + timer.multiplier;
 	camera.lookAt( camTarget );

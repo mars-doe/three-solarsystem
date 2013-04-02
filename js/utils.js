@@ -83,6 +83,13 @@ function keyInObject( obj ){
 	}
 }
 
+function Tweener( obj, target, time ){
+	var scaler = new TWEEN.Tween( obj )
+		.to( target, time )
+		.easing( TWEEN.Easing.Sinusoidal.InOut )
+		.start();
+}
+
 function debugAxis(axisLength){
     //Shorten the vertex function
     function v(x,y,z){ 
