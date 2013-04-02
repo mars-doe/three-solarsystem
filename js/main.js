@@ -27,7 +27,9 @@ var departure_time = new Time( { Yr:2014, Mon:4, D:7, Hr:1, Mn:1, S:1 } );
 var arrival_time = new Time( { Yr:2014, Mon:9, D:24, Hr:1, Mn:1, S:1 } );
 
 var mouse = { x: -1000, y: 0 }, 
-	INTERSECTED;
+	INTERSECTED,
+	CLICKED,
+	clickMove = true;
 
 var dae;
 var loader = new THREE.ColladaLoader();
@@ -77,7 +79,7 @@ function init() {
 	$container = $("#container");
 
 	scene = new THREE.Scene();
-	scene.fog = new THREE.FogExp2( 0x000000, 0.000055 );
+	scene.fog = new THREE.FogExp2( 0x000000, 0.00005 );
 
 	camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR );
 	camera.position.set( 100, 500, 1000 );
@@ -124,7 +126,7 @@ function init() {
 
 	timer = new Timer();
 	timer.count = 0;
-	timer.multiplier = .25;
+	timer.multiplier = .025;
 	timer.JD = new Date().Date2Julian();
 	buildGUI();
 
@@ -137,6 +139,7 @@ function init() {
 	stats.domElement.style.top = '0px';
 	$container.append( stats.domElement );
 
+	document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 	window.addEventListener( 'resize', onWindowResize, false );
 
@@ -185,11 +188,12 @@ function setupScene(){
 	// SUN = new THREE.Mesh( new THREE.PlaneGeometry( 50, 50 ), SUNmat );
 	// scene.add( SUN );
 
-	debugGrid = new debugGrid(-1, 100, 1000);
+	// debugGrid = new debugGrid(-1, 100, 1000);
 	// scene.add(debugGrid);
 
-	debugAxis = new debugAxis(500);
-	// scene.add(debugAxis);
+	// object = new THREE.AxisHelper( 500 );
+	// object.position.set( 0, 0, 0 );
+	// scene.add( object );
 
 	marsOdyssey = new MarsOdyssey();
 	marsOdyssey.init( departure_time, arrival_time );
@@ -197,21 +201,21 @@ function setupScene(){
 	solarSystem = makeSolarSystem();
 	solarSystem.rotation.x = -2;
 
-	starField = new stars( 45000, 100 );
+	starField = new stars( 25000, 40000, 100 );
 	solarSystem.add( starField );
 
 	lensFlares = new THREE.Object3D();
 	var override = THREE.ImageUtils.loadTexture( "./images/lensflare/hexangle.png" );
 	var sunFlare = addLensFlare( 0, 0, 5, 5, override );
-	// scene.add( sunFlare );
+	scene.add( sunFlare );
 
 
-	var ruler = new Ruler( ss[3], ss[4] );
-	//scene.add( ruler );
+	// var ruler = new Ruler( ss[3], ss[4] );
+	// scene.add( ruler );
 	
 	scene.add( dae );
 	scene.add( solarSystem );
-	// scene.add( lensFlares );
+	scene.add( lensFlares );
 
 	ss[1].orbit.rotation.set( 2.25, -1.9, .19);
 	ss[3].orbit.rotation.set( 2, 0, -.003);
@@ -223,6 +227,35 @@ function setupScene(){
 	ss[8].orbit.rotation.set( 2.005, 1.25, -.034);
 }
 
+function onDocumentMouseDown( event ) {
+
+	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
+	projector.unprojectVector( vector, camera );
+
+	var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+
+	intersects = raycaster.intersectObjects( solarSystem.children );
+
+	if ( intersects.length > 0 ) {
+
+		// if ( CLICKED != intersects[ 0 ].object ) {
+
+			CLICKED = intersects[ 0 ].object;
+
+			if( clickMove ){
+				var posCLICKED = new THREE.Vector3();
+				posCLICKED.getPositionFromMatrix( CLICKED.matrixWorld );
+
+				var zScale = 250;
+				lookAtCLICKED = { x: posCLICKED.x + 50, y: posCLICKED.y + 50, z: posCLICKED.z + zScale };
+
+				var camCLICKED = new camPosition( lookAtCLICKED, posCLICKED, 1000 );
+				camCLICKED.tween();
+			}
+			console.log(CLICKED.name);
+		// }
+	} 
+}
 
 function onDocumentMouseMove( event ) {
 
@@ -255,7 +288,7 @@ function animate() {
     camera.updateProjectionMatrix();
 	camera.lookAt( camTarget );
 
-	SUN.lookAt(camera.position);
+	lensFlares.lookAt(camera.position);
 
 	updateRulers();
     updateLabels();
@@ -270,35 +303,6 @@ function animate() {
 	if (marsOdyssey != null ) {
 		marsOdyssey.drawTrajectory( timer.JD, ssScale.s );
 	}
-
-	var vector = new THREE.Vector3( mouse.x, mouse.y, 1 );
-	projector.unprojectVector( vector, camera );
-
-	var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-
-	var intersects = raycaster.intersectObjects( solarSystem.children );
-
-	if ( intersects.length > 0 ) {
-
-		if ( INTERSECTED != intersects[ 0 ].object ) {
-			
-			INTERSECTED = intersects[ 0 ].object;
-			// INTERSECTED.add(camera);
-			// INTERSECTED.label.show();
-			// setLoadMessage('Awesome information about ' + INTERSECTED.name + ' could go here!');
-			// $( '#loadtext' ).fadeIn('fast');
-
-		}
-
-	} else {
-
-		if ( INTERSECTED != null){
-			// showLabels( ss, false );
-		}
-		INTERSECTED = null;
-		$( '#loadtext' ).fadeOut('fast');
-
-	}	
 
 	uniforms.time.value = timer.JD / 20;
 

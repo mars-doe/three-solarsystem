@@ -1,7 +1,6 @@
-var Orbit = function( e, scale ){
+var Orbit = function( planetNum, e, scale ){
 	
-	var LOD,
-		axisRez = 40,
+	var axisRez = 40 * planetNum,
 		eph = e;
 
 	var axisPoints = [];
@@ -11,6 +10,14 @@ var Orbit = function( e, scale ){
 		color: 0x202020, 
 		opacity: .5, 
 		linewidth: 1 
+	});
+
+	var particles = new THREE.Geometry(),
+	    pMaterial = new THREE.ParticleBasicMaterial({
+	        color: 0x505050,
+	        size: 1.5,
+	        fog: true,
+	        transparent: true
 	});
 	
 	for( var i = 0; i < axisRez; i++ ) {
@@ -24,10 +31,12 @@ var Orbit = function( e, scale ){
 	var splinePoints = spline.getPoints( axisRez );
 	
 	for(var i = 0; i < splinePoints.length; i++){
-		splineGeo.vertices.push(splinePoints[i]);  
+		splineGeo.vertices.push(splinePoints[i]);
+		particles.vertices.push(splinePoints[i]); 
 	}
-	
-	LOD = new THREE.Line( splineGeo, material );	
 
- return LOD;
+	var particleSystem = new THREE.ParticleSystem( particles, pMaterial);
+	var LOD = new THREE.Line( splineGeo, material );	
+
+ return particleSystem;
 };

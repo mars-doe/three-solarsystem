@@ -44,7 +44,7 @@ function makeSolarSystem(){
 
 	ss.push(  new Sun() );
 	ss[0].rotation.x = 2;
-	// ss3D.add( ss[0] );
+	ss3D.add( ss[0] );
 
 	ss[0].label = new Label( ss[0], 1, container );
 
@@ -61,8 +61,8 @@ function makeSolarSystem(){
 		ss[i].name = ephemeris[i].name;
 
 
-		ss[i].orbit = new Orbit( ephemeris[i], ssScale.s );
-		ss[i].orbit.rotation.x = 2;
+		ss[i].orbit = new Orbit( i, ephemeris[i], ssScale.s );
+		// ss[i].orbit.rotation.x = 2;
 		ss[i].orbit.name = ss[i].name + " Orbit";
 		ss3D.add( ss[i].orbit );
 

@@ -1,12 +1,12 @@
 var starsCount = 0;
-var stars = function( systemSize, particleSize){
+var stars = function( amount, systemSize, particleSize){
     
     var particles, geometry, material, i;
     var systemLimit = systemSize / 50;
     // console.log(systemLimit);
     geometry = new THREE.Geometry();
 
-    for ( i = 0; i < 20000; i ++ ) {
+    for ( i = 0; i < amount; i ++ ) {
 
         var vertex = new THREE.Vector3();
         vertex.x = getRandom( systemLimit, systemSize );

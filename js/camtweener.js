@@ -1,7 +1,10 @@
 var camPosition = function( position, target, time ){
+	this.pos = position;
+	this.tar = target;
+	this.t = time;
 	this.tween = function(){
 		TWEEN.removeAll();
-		camTweener( position, target, time );
+		camTweener( this.pos, this.tar, this.t );
 	};
 	return this;
 }
